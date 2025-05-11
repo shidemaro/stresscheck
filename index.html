@@ -7,13 +7,13 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #d8f3dc;
+      background-color: #f9f9f9;
       color: #333;
       margin: 0;
       padding: 20px;
     }
     header, footer {
-      background-color: #95d5b2;
+      background-color: #007bff;
       color: white;
       text-align: center;
       padding: 10px 0;
@@ -37,11 +37,7 @@
       border-radius: 5px;
       cursor: pointer;
     }
-    .results {const passwordPattern = /^(?=(?:.*\d){4,})(?=(?:.*[a-zA-Z]){4,}).{8,}$/;
-if (!isAdmin && !passwordPattern.test(password)) {
-  alert("パスワードは数字4文字以上・英字4文字以上を含み、合計8文字以上である必要があります。");
-  return;
-}
+    .results {
       margin-top: 30px;
       font-weight: bold;
     }
@@ -50,9 +46,6 @@ if (!isAdmin && !passwordPattern.test(password)) {
 <body>
   <header>
     <h1>ストレスチェック</h1>
-    <div style="text-align:center; margin: 10px 0;">
-      <img src="/mnt/data/ChatGPT Image 2025年5月11日 23_34_15.png" alt="かわいい羊" width="120">
-    </div>
   </header>
 
   <main>
@@ -62,8 +55,6 @@ if (!isAdmin && !passwordPattern.test(password)) {
         <input type="text" id="company" placeholder="会社名" required>
         <input type="password" id="password" placeholder="パスワード" required>
         <input type="text" id="username" placeholder="氏名（個人用のみ）">
-        <label for="birthdate">生年月日：</label>
-        <input type="date" id="birthdate" required>
         <label><input type="checkbox" id="adminCheck"> 管理者ログイン</label><br>
         <button type="submit">ログイン</button>
       </form>
@@ -93,129 +84,21 @@ if (!isAdmin && !passwordPattern.test(password)) {
       <h2>管理画面</h2>
       <div id="adminResults"></div>
       <button id="exportCSV" class="submit-button">CSVダウンロード</button>
-    <div style="text-align:center; margin-bottom: 20px;">
-  <img src="https://cdn.openai.com/chatgpt/sheep-cute-1.png" alt="かわいいひつじ" width="120">
-</div>
-<div style="text-align:center; margin-bottom:10px;">
-  <label>年度表示切替：
-    <select id="filterSelect">
-      <option value="fiscal">今年度</option>
-      <option value="all">すべて</option>
-    </select>
-  </label>
-</div>
-$1
-  <label>表示切替：
-    <select id="filterSelect">
-      <option value="fiscal">今年度</option>
-      <option value="all">すべて</option>
-    </select>
-  </label>
-</div>
-</section>
-<section id="adminMaster" style="display:none; margin: 20px;">
-  <h2>マスターログイン</h2>
-  <p>全会社の回答データを表示します。</p>
-  <div id="masterResults"></div>
-  <button id="exportAllCSV" class="submit-button">すべてCSVダウンロード</button>
-</section>
-</main>
+    </section>
+
+    <section id="adminMaster" style="display:none; margin: 20px;">
+      <h2>マスターログイン</h2>
+      <p>全会社の回答データを表示します。</p>
+      <div id="masterResults"></div>
+      <button id="exportAllCSV" class="submit-button">すべてCSVダウンロード</button>
+    </section>
+  </main>
 
   <footer>
-    <p>&copy; 2025 ストレスチェックシステム</p>
+    <p>© 2025 ストレスチェックシステム</p>
   </footer>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">document.getElementById('exportCSV').addEventListener('click', () => {
-  const company = document.getElementById('company').value;
-  let dataList = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith(`stress_${company}_`)) {
-    const item = JSON.parse(localStorage.getItem(key));
-    const itemDate = new Date(item.timestamp);
-    const current = new Date();
-    const fiscalYearStart = new Date(current.getMonth() < 3 ? current.getFullYear() - 1 : current.getFullYear(), 3, 1);
-    if (filter === 'fiscal' && itemDate < fiscalYearStart) continue;
-      if (filter === 'all') {}
-      dataList.push(item);
-    }
-  }
-
-  // 並び替え（例：B合計が高い順）
-  dataList.sort((a, b) => b.totalB - a.totalB);
-
-  const rows = [["氏名", "会社名", "A合計", "B合計", "C合計", "D合計", "面談希望", "回答日時"]];
-  for (const item of dataList) {
-    const interview = item.interview === '希望する' ? '希望する' : '';
-    rows.push([item.name || '', item.company || '', item.totalA, item.totalB, item.totalC, item.totalD, interview, item.timestamp]);
-  }
-
-  const csvContent = rows.map(r => r.join(",")).join("
-");
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${company}_stress_check.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-});
-    if (key.startsWith(`stress_${company}_`)) {
-      const item = JSON.parse(localStorage.getItem(key));
-      const interview = item.interview === '希望する' ? '希望する' : '';
-      rows.push([item.name || '', item.company || '', item.totalA, item.totalB, item.totalC, item.totalD, interview, item.timestamp]);
-    }
-  }
-  const csvContent = rows.map(r => r.join(",")).join("
-");
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${company}_stress_check.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-});
-function loadAllData() {
-  const filter = document.getElementById("filterSelect")?.value || "fiscal";
-  let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-             "<tr><th>会社名</th><th>氏名</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>面談希望</th><th>回答日時</th></tr>";
-  const rows = [["会社名", "氏名", "A合計", "B合計", "C合計", "D合計", "面談希望", "回答日時"]];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith("stress_")) {
-    const item = JSON.parse(localStorage.getItem(key));
-    const itemDate = new Date(item.timestamp);
-    const current = new Date();
-    const fiscalYearStart = new Date(current.getMonth() < 3 ? current.getFullYear() - 1 : current.getFullYear(), 3, 1);
-    if (itemDate < fiscalYearStart) continue;
-      const interview = item.interview === '希望する' ? '希望する' : '';
-      html += `<tr><td>${item.company}</td><td>${item.name}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${interview}</td><td>${item.timestamp}</td></tr>`;
-      rows.push([item.company, item.name, item.totalA, item.totalB, item.totalC, item.totalD, interview, item.timestamp]);
-    }
-  }
-  html += "</table>";
-  document.getElementById("masterResults").innerHTML = html;
-
-  document.getElementById("exportAllCSV").onclick = () => {
-    const csv = rows.map(r => r.join(",")).join("
-");
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `全会社_ストレスチェック結果.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-}
-</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const loginForm = document.getElementById('login-form');
@@ -249,47 +132,47 @@ function loadAllData() {
         "働きがいのある仕事だ"
       ];
       const B_questions = [
-  "活気がわいてくる",
-  "元気がいっぱいだ",
-  "生き生きする",
-  "怒りを感じる",
-  "内心腹立たしい",
-  "イライラしている",
-  "ひどく疲れた",
-  "へとへとだ",
-  "だるい",
-  "気がはりつめている",
-  "不安だ",
-  "落着かない",
-  "ゆううつだ",
-  "何をするのも面倒だ",
-  "物事に集中できない",
-  "気分が晴れない",
-  "仕事が手につかない",
-  "悲しいと感じる",
-  "めまいがする",
-  "体のふしぶしが痛む",
-  "頭が重かったり頭痛がする",
-  "首筋や肩がこる",
-  "腰が痛い",
-  "目が疲れる",
-  "動悸や息切れがする",
-  "胃腸の具合が悪い",
-  "食欲がない",
-  "便秘や下痢をする",
-  "よく眠れない"
-];
+        "活気がわいてくる",
+        "元気がいっぱいだ",
+        "生き生きする",
+        "怒りを感じる",
+        "内心腹立たしい",
+        "イライラしている",
+        "ひどく疲れた",
+        "へとへとだ",
+        "だるい",
+        "気がはりつめている",
+        "不安だ",
+        "落着かない",
+        "ゆううつだ",
+        "何をするのも面倒だ",
+        "物事に集中できない",
+        "気分が晴れない",
+        "仕事が手につかない",
+        "悲しいと感じる",
+        "めまいがする",
+        "体のふしぶしが痛む",
+        "頭が重かったり頭痛がする",
+        "首筋や肩がこる",
+        "腰が痛い",
+        "目が疲れる",
+        "動悸や息切れがする",
+        "胃腸の具合が悪い",
+        "食欲がない",
+        "便秘や下痢をする",
+        "よく眠れない"
+      ];
       const C_questions = [
-  "上司（気軽に話ができますか）",
-  "職場の同僚（気軽に話ができますか）",
-  "配偶者、家族、友人等（気軽に話ができますか）",
-  "上司（困った時に頼りになりますか）",
-  "職場の同僚（困った時に頼りになりますか）",
-  "配偶者、家族、友人等（困った時に頼りになりますか）",
-  "上司（個人的な問題を相談したらきいてくれますか）",
-  "職場の同僚（個人的な問題を相談したらきいてくれますか）",
-  "配偶者、家族、友人等（個人的な問題を相談したらきいてくれますか）"
-];
+        "上司（気軽に話ができますか）",
+        "職場の同僚（気軽に話ができますか）",
+        "配偶者、家族、友人等（気軽に話ができますか）",
+        "上司（困った時に頼りになりますか）",
+        "職場の同僚（困った時に頼りになりますか）",
+        "配偶者、家族、友人等（困った時に頼りになりますか）",
+        "上司（個人的な問題を相談したらきいてくれますか）",
+        "職場の同僚（個人的な問題を相談したらきいてくれますか）",
+        "配偶者、家族、友人等（個人的な問題を相談したらきいてくれますか）"
+      ];
       const D_questions = ["仕事に満足だ", "家庭生活に満足だ"];
 
       function renderQuestions(section, questions, prefix, labels) {
@@ -306,12 +189,19 @@ function loadAllData() {
       }
 
       loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const company = document.getElementById('company').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const username = document.getElementById('username').value.trim();
+        const isAdmin = document.getElementById('adminCheck').checked;
+
         if (company === 'master' && password === 'masterpass') {
           loginForm.style.display = 'none';
           document.getElementById('adminMaster').style.display = 'block';
           loadAllData();
           return;
         }
+
         const savedData = localStorage.getItem('autosave');
         if (savedData) {
           const confirmRestore = confirm('前回の回答データがあります。復元しますか？');
@@ -323,26 +213,8 @@ function loadAllData() {
             });
           } else {
             localStorage.removeItem('autosave');
-
-            const record = {
-              name: username,
-              company: company,
-              birthdate: birthdate,
-              totalA, totalB, totalC, totalD,
-              interview: formData.get('interview'),
-              timestamp: new Date().toISOString()
-            };
-            const key = `stress_${company}_${username}_${birthdate}_${year}_${Date.now()}`;
-            localStorage.setItem(key, JSON.stringify(record));
-
-            resultDiv.innerHTML += `<p style='margin-top:1em;'>🐑 お疲れさまでした。ご回答ありがとうございました。<br><em>つらいときは、誰かに話すだけでも心が少し軽くなります。</em></p>`;
           }
         }
-        e.preventDefault();
-        const company = document.getElementById('company').value.trim();
-        const password = document.getElementById('password').value.trim();
-        const username = document.getElementById('username').value.trim();
-        const isAdmin = document.getElementById('adminCheck').checked;
 
         const passwordPattern = /^(?=(?:.*\d){4,})(?=(?:.*[a-zA-Z]){4,}).{8,}$/;
         if (!isAdmin && !passwordPattern.test(password)) {
@@ -368,14 +240,29 @@ function loadAllData() {
             loadAdminData(company);
             const count = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
               .filter(key => key.startsWith(`stress_${company}_`)).length;
+            const interviewCount = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
+              .filter(key => key.startsWith(`stress_${company}_`))
+              .map(key => JSON.parse(localStorage.getItem(key)))
+              .filter(item => item.interview === '希望する').length;
             const countDiv = document.createElement('div');
             countDiv.style.fontWeight = 'bold';
             countDiv.style.marginBottom = '10px';
+            countDiv.textContent = `提出済み人数: ${count}人　／　面談希望者: ${interviewCount}人`;
+            adminResults.prepend(countDiv);
+          } else if (savedPass === password) {
+            loginForm.style.display = 'none';
+            adminPanel.style.display = 'block';
+            loadAdminData(company);
+            const count = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
+              .filter(key => key.startsWith(`stress_${company}_`)).length;
             const interviewCount = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
-  .filter(key => key.startsWith(`stress_${company}_`))
-  .map(key => JSON.parse(localStorage.getItem(key)))
-  .filter(item => item.interview === '希望する').length;
-countDiv.textContent = `提出済み人数: ${count}人　／　面談希望者: ${interviewCount}人`;
+              .filter(key => key.startsWith(`stress_${company}_`))
+              .map(key => JSON.parse(localStorage.getItem(key)))
+              .filter(item => item.interview === '希望する').length;
+            const countDiv = document.createElement('div');
+            countDiv.style.fontWeight = 'bold';
+            countDiv.style.marginBottom = '10px';
+            countDiv.textContent = `提出済み人数: ${count}人　／　面談希望者: ${interviewCount}人`;
             adminResults.prepend(countDiv);
           } else {
             alert("管理者パスワードが違います。");
@@ -403,18 +290,6 @@ countDiv.textContent = `提出済み人数: ${count}人　／　面談希望者:
 
           // スコア送信と評価メッセージ表示
           stressForm.addEventListener('submit', function(e) {
-            const birthdate = document.getElementById('birthdate')?.value;
-            const company = stressForm.dataset.company;
-            const username = stressForm.dataset.username;
-            const year = new Date().getMonth() < 3 ? new Date().getFullYear() - 1 : new Date().getFullYear();
-            const duplicateKeyPrefix = `stress_${company}_${username}_${birthdate}_${year}`;
-            const existingKey = Object.keys(localStorage).reverse().find(k => k.startsWith(duplicateKeyPrefix));
-            if (existingKey) {
-              const overwrite = confirm("同一氏名・生年月日で今年度すでに提出されています。上書きしてもよろしいですか？（はい＝新しい内容で上書き／いいえ＝過去のデータを保持）");
-              if (!overwrite) return;
-              localStorage.removeItem(existingKey);
-            }
-
             e.preventDefault();
             const formData = new FormData(stressForm);
             let totalA = 0, totalB = 0, totalC = 0, totalD = 0;
@@ -445,45 +320,118 @@ countDiv.textContent = `提出済み人数: ${count}人　／　面談希望者:
             resultDiv.innerHTML =
               `A項目合計: ${totalA}点<br>B項目合計: ${totalB}点<br>C項目合計: ${totalC}点<br>D項目合計: ${totalD}点<br><br><strong>${evaluation}</strong><br>${guidance}`;
 
+            // データ保存
+            const interview = formData.get('interview') || '';
+            const data = {
+              company: stressForm.dataset.company,
+              name: stressForm.dataset.username,
+              totalA,
+              totalB,
+              totalC,
+              totalD,
+              interview,
+              timestamp: new Date().toISOString()
+            };
+            localStorage.setItem(`stress_${data.company}_${data.name}_${Date.now()}`, JSON.stringify(data));
+
             localStorage.removeItem('autosave');
           });
         }
       });
-    });
-  
-    function loadAdminData(company) {
-  const filter = document.getElementById("filterSelect")?.value || "fiscal";
-  let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-             "<tr><th>氏名</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>面談希望</th><th>回答日時</th></tr>";
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith(`stress_${company}_`)) {
-      const item = JSON.parse(localStorage.getItem(key));
-      const itemDate = new Date(item.timestamp);
-      const current = new Date();
-      const fiscalYearStart = new Date(current.getMonth() < 3 ? current.getFullYear() - 1 : current.getFullYear(), 3, 1);
-      if (filter === 'fiscal' && itemDate < fiscalYearStart) continue;
-      const interview = item.interview === '希望する' ? '希望する' : '';
-      html += `<tr><td>${item.name || ""}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${interview}</td><td>${item.timestamp}</td></tr>`;
-    }
-  }
-  html += "</table>";
-  document.getElementById("adminResults").innerHTML = html;
 
-  // 表示を変更した時の更新処理を追加
-  const filterSelect = document.getElementById("filterSelect");
-  if (filterSelect) {
-    filterSelect.onchange = () => loadAdminData(company);
-  }
-}_`)) {
-          const item = JSON.parse(localStorage.getItem(key));
-          const interview = item.interview === '希望する' ? '希望する' : '';
-          html += `<tr><td>${item.name || ""}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${interview}</td><td>${item.timestamp}</td></tr>`;
+      // PDF保存
+      document.getElementById('downloadPDF').addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const company = stressForm.dataset.company || '不明';
+        const username = stressForm.dataset.username || '不明';
+        const resultText = document.getElementById('result').innerText;
+
+        doc.setFont('helvetica');
+        doc.setFontSize(12);
+        doc.text(`ストレスチェック結果 (${company} - ${username})`, 10, 10);
+        doc.text(resultText, 10, 20);
+        doc.save(`${company}_${username}_stress_check.pdf`);
+      });
+
+      // CSVエクスポート
+      document.getElementById('exportCSV').addEventListener('click', () => {
+        const company = document.getElementById('company').value;
+        let dataList = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith(`stress_${company}_`)) {
+            const item = JSON.parse(localStorage.getItem(key));
+            dataList.push(item);
+          }
         }
+
+        // 並び替え（例：B合計が高い順）
+        dataList.sort((a, b) => b.totalB - a.totalB);
+
+        const rows = [["氏名", "会社名", "A合計", "B合計", "C合計", "D合計", "面談希望", "回答日時"]];
+        for (const item of dataList) {
+          const interview = item.interview === '希望する' ? '希望する' : '';
+          rows.push([item.name || '', item.company || '', item.totalA, item.totalB, item.totalC, item.totalD, interview, item.timestamp]);
+        }
+
+        const csvContent = rows.map(r => r.join(",")).join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${company}_stress_check.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+
+      function loadAdminData(company) {
+        let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                   "<tr><th>氏名</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>面談希望</th><th>回答日時</th></tr>";
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith(`stress_${company}_`)) {
+            const item = JSON.parse(localStorage.getItem(key));
+            const interview = item.interview === '希望する' ? '希望する' : '';
+            html += `<tr><td>${item.name || ""}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${interview}</td><td>${item.timestamp}</td></tr>`;
+          }
+        }
+        html += "</table>";
+        document.getElementById("adminResults").innerHTML = html;
       }
-      html += "</table>";
-      document.getElementById("adminResults").innerHTML = html;
-    }
+
+      function loadAllData() {
+        let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                   "<tr><th>会社名</th><th>氏名</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>面談希望</th><th>回答日時</th></tr>";
+        const rows = [["会社名", "氏名", "A合計", "B合計", "C合計", "D合計", "面談希望", "回答日時"]];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith("stress_")) {
+            const item = JSON.parse(localStorage.getItem(key));
+            const interview = item.interview === '希望する' ? '希望する' : '';
+            html += `<tr><td>${item.company}</td><td>${item.name}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${interview}</td><td>${item.timestamp}</td></tr>`;
+            rows.push([item.company, item.name, item.totalA, item.totalB, item.totalC, item.totalD, interview, item.timestamp]);
+          }
+        }
+        html += "</table>";
+        document.getElementById("masterResults").innerHTML = html;
+
+        document.getElementById("exportAllCSV").onclick = () => {
+          const csv = rows.map(r => r.join(",")).join("\n");
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `全会社_ストレスチェック結果.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        };
+      }
+    });
   </script>
 </body>
 </html>
