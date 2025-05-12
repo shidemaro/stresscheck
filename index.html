@@ -306,14 +306,92 @@
         masterPasswordResults.innerHTML = html;
       }
 
+      // ストレスフォームのイベントリスナーをグローバルに定義
+      stressForm.addEventListener('change', () => {
+        console.log('ストレスフォーム変更検知');
+        const formData = new FormData(stressForm);
+        const answerData = {};
+        for (let [key, value] of formData.entries()) {
+          answerData[key] = value;
+        }
+        localStorage.setItem('autosave', JSON.stringify(answerData));
+      });
+
+      stressForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        console.log('ストレスフォーム送信');
+        const formData = new FormData(stressForm);
+        let totalA = 0, totalB = 0, totalC = 0, totalD = 0;
+        for (let [key, value] of formData.entries()) {
+          const score = parseInt(value);
+          const section = key.charAt(0);
+          if (section === 'A') totalA += score;
+          else if (section === 'B') totalB += score;
+          else if (section === 'C') totalC += score;
+          else if (section === 'D') totalD += score;
+        }
+        // 修正: 変数名をlet-evaluationからlet evaluationに変更
+        let evaluation = "";
+        let highStressFlag = false;
+        let highStressReason = "";
+        if (totalB >= 77) {
+          highStressReason = "B項目（最近の状態）の合計が77点以上";
+          evaluation += `<br><span style='color:red;'>[高ストレス該当] ${highStressReason}</span>`;
+          highStressFlag = true;
+        } else if ((totalA + totalC) >= 76 && totalB >= 63) {
+          highStressReason = "A+C（仕事と人間関係）の合計が76点以上かつB（最近の状態）が63点以上";
+          evaluation += `<br><span style='color:red;'>[高ストレス該当] ${highStressReason}</span>`;
+          highStressFlag = true;
+        }
+
+        let guidance = "";
+        if (highStressFlag) {
+          guidance = "<p style='color:darkred;'><strong>あなたは高ストレスの可能性があります。以下の理由で産業医との面談をおすすめします：<br>" +
+                    `- ${highStressReason}<br>` +
+                    "面談はメンタルヘルスをサポートし、職場環境の改善に役立ちます。希望する場合はチェックしてください（任意）。</strong></p>" +
+                    "<label><input type='checkbox' id='interview' name='interview' value='希望する'> 産業医面談を希望する</label>";
+        }
+
+        const explanation = "<p><strong>スコアの意味：</strong><br>" +
+                           "- A項目（仕事）：職場の負担や裁量を評価。高いほど仕事のストレスが多い。<br>" +
+                           "- B項目（最近の状態）：心身の健康状態。高いほどストレス症状が強い。<br>" +
+                           "- C項目（周囲との関係）：社会的支援。低いほど孤立感が強い。<br>" +
+                           "- D項目（満足度）：仕事や生活の満足度。低いほど不満が多い。<br>" +
+                           "高ストレスと判定された場合、産業医面談で具体的な対策を相談できます。</p>";
+
+        resultDiv.innerHTML =
+          `A項目合計: ${totalA}点<br>B項目合計: ${totalB}点<br>C項目合計: ${totalC}点<br>D項目合計: ${totalD}点<br><br>` +
+          `<strong>${evaluation}</strong><br>${guidance}<br>${explanation}`;
+
+        const interview = document.getElementById('interview')?.checked ? '希望する' : '';
+        const data = {
+          company: stressForm.dataset.company,
+          name: stressForm.dataset.username,
+          year: parseInt(stressForm.dataset.year),
+          totalA,
+          totalB,
+          totalC,
+          totalD,
+          interview,
+          highStress: highStressFlag,
+          highStressReason,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem(`stress_${data.company}_${data.name}_${data.year}`, JSON.stringify(data));
+
+        localStorage.removeItem('autosave');
+      });
+
       loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        console.log('ログイン処理開始');
         const company = document.getElementById('company').value.trim();
         const password = document.getElementById('password').value.trim();
         const username = document.getElementById('username').value.trim();
         const isAdmin = document.getElementById('adminCheck').checked;
 
         if (company === 'master' && password === 'sakaue0000m') {
+          console.log('マスターログイン（パスワード一覧）');
           loginForm.style.display = 'none';
           masterPasswordPanel.style.display = 'block';
           loadPasswordData();
@@ -321,6 +399,7 @@
         }
 
         if (company === 'master' && password === 'masterpass') {
+          console.log('マスターログイン（全データ）');
           loginForm.style.display = 'none';
           adminMaster.style.display = 'block';
           loadAllData();
@@ -356,6 +435,7 @@
         }
 
         if (isAdmin) {
+          console.log('管理者ログイン処理');
           const savedPass = localStorage.getItem("adminpass_" + company);
           if (!savedPass) {
             localStorage.setItem("adminpass_" + company, password);
@@ -394,6 +474,7 @@
             return;
           }
         } else {
+          console.log('通常ログイン処理');
           const currentYear = new Date().getFullYear();
           const submissionKey = `stress_${company}_${username}_${currentYear}`;
           if (localStorage.getItem(submissionKey)) {
@@ -410,82 +491,11 @@
           stressForm.dataset.company = company;
           stressForm.dataset.username = username;
           stressForm.dataset.year = currentYear;
-
-          stressForm.addEventListener('change', () => {
-            const formData = new FormData(stressForm);
-            const answerData = {};
-            for (let [key, value] of formData.entries()) {
-              answerData[key] = value;
-            }
-            localStorage.setItem('autosave', JSON.stringify(answerData));
-          });
-
-          stressForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(stressForm);
-            let totalA = 0, totalB = 0, totalC = 0, totalD = 0;
-            for (let [key, value] of formData.entries()) {
-              const score = parseInt(value);
-              const section = key.charAt(0);
-              if (section === 'A') totalA += score;
-              else if (section === 'B') totalB += score;
-              else if (section === 'C') totalC += score;
-              else if (section === 'D') totalD += score;
-            }
-            let-evaluation = "";
-            let highStressFlag = false;
-            let highStressReason = "";
-            if (totalB >= 77) {
-              highStressReason = "B項目（最近の状態）の合計が77点以上";
-              evaluation += `<br><span style='color:red;'>[高ストレス該当] ${highStressReason}</span>`;
-              highStressFlag = true;
-            } else if ((totalA + totalC) >= 76 && totalB >= 63) {
-              highStressReason = "A+C（仕事と人間関係）の合計が76点以上かつB（最近の状態）が63点以上";
-              evaluation += `<br><span style='color:red;'>[高ストレス該当] ${highStressReason}</span>`;
-              highStressFlag = true;
-            }
-
-            let guidance = "";
-            if (highStressFlag) {
-              guidance = "<p style='color:darkred;'><strong>あなたは高ストレスの可能性があります。以下の理由で産業医との面談をおすすめします：<br>" +
-                        `- ${highStressReason}<br>` +
-                        "面談はメンタルヘルスをサポートし、職場環境の改善に役立ちます。希望する場合はチェックしてください（任意）。</strong></p>" +
-                        "<label><input type='checkbox' id='interview' name='interview' value='希望する'> 産業医面談を希望する</label>";
-            }
-
-            const explanation = "<p><strong>スコアの意味：</strong><br>" +
-                               "- A項目（仕事）：職場の負担や裁量を評価。高いほど仕事のストレスが多い。<br>" +
-                               "- B項目（最近の状態）：心身の健康状態。高いほどストレス症状が強い。<br>" +
-                               "- C項目（周囲との関係）：社会的支援。低いほど孤立感が強い。<br>" +
-                               "- D項目（満足度）：仕事や生活の満足度。低いほど不満が多い。<br>" +
-                               "高ストレスと判定された場合、産業医面談で具体的な対策を相談できます。</p>";
-
-            resultDiv.innerHTML =
-              `A項目合計: ${totalA}点<br>B項目合計: ${totalB}点<br>C項目合計: ${totalC}点<br>D項目合計: ${totalD}点<br><br>` +
-              `<strong>${evaluation}</strong><br>${guidance}<br>${explanation}`;
-
-            const interview = document.getElementById('interview')?.checked ? '希望する' : '';
-            const data = {
-              company: stressForm.dataset.company,
-              name: stressForm.dataset.username,
-              year: parseInt(stressForm.dataset.year),
-              totalA,
-              totalB,
-              totalC,
-              totalD,
-              interview,
-              highStress: highStressFlag,
-              highStressReason,
-              timestamp: new Date().toISOString()
-            };
-            localStorage.setItem(`stress_${company}_${username}_${stressForm.dataset.year}`, JSON.stringify(data));
-
-            localStorage.removeItem('autosave');
-          });
         }
       });
 
       document.getElementById('downloadPDF').addEventListener('click', () => {
+        console.log('PDFダウンロード開始');
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const company = stressForm.dataset.company || '不明';
@@ -501,6 +511,7 @@
       });
 
       document.getElementById('exportCSV').addEventListener('click', () => {
+        console.log('CSVダウンロード開始');
         const company = document.getElementById('company').value;
         let dataList = [];
         for (let i = 0; i < localStorage.length; i++) {
@@ -533,6 +544,7 @@
       });
 
       function loadAdminData(company, highStressOnly = false) {
+        console.log(`管理者データ読み込み: ${company}, 高ストレスのみ: ${highStressOnly}`);
         let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
                    "<tr><th>氏名</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>面談希望</th><th>回答日時</th></tr>";
         let dataList = [];
@@ -575,6 +587,7 @@
       }
 
       function loadAllData(highStressOnly = false) {
+        console.log(`全データ読み込み, 高ストレスのみ: ${highStressOnly}`);
         let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
                    "<tr><th>会社名</th><th>氏名</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>面談希望</th><th>回答日時</th></tr>";
         let dataList = [];
@@ -618,6 +631,7 @@
         masterResults.innerHTML = html;
 
         document.getElementById('exportAllCSV').onclick = () => {
+          console.log('全データCSVダウンロード');
           const csv = rows.map(r => r.join(",")).join("\n");
           const blob = new Blob([csv], { type: 'text/csv' });
           const url = URL.createObjectURL(blob);
@@ -632,11 +646,13 @@
       }
 
       document.getElementById('filterHighStress')?.addEventListener('click', () => {
+        console.log('高ストレスフィルタ（管理者）');
         const company = document.getElementById('company').value;
         loadAdminData(company, true);
       });
 
       document.getElementById('filterHighStressMaster')?.addEventListener('click', () => {
+        console.log('高ストレスフィルタ（マスター）');
         loadAllData(true);
       });
     });
