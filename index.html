@@ -83,37 +83,6 @@
       </div>
       <!-- INFOLINKS_ON -->
     </section>
-
-    <!-- 産業医面談モーダル -->
-    <div id="interviewModal" class="modal">
-      <div class="modal-content">
-        <h3>産業医面談の希望日時を選択</h3>
-        <div class="form-group">
-          <label for="interviewDate">希望日</label>
-          <select id="interviewDate" required>
-            <!-- 日付はJSで動的に追加 -->
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="interviewTime">希望時間</label>
-          <select id="interviewTime" required>
-            <option value="09:00">09:00</option>
-            <option value="10:00">10:00</option>
-            <option value="11:00">11:00</option>
-            <option value="12:00">12:00</option>
-            <option value="13:00">13:00</option>
-            <option value="14:00">14:00</option>
-            <option value="15:00">15:00</option>
-            <option value="16:00">16:00</option>
-            <option value="17:00">17:00</option>
-          </select>
-        </div>
-        <div class="button-group">
-          <button class="modal-button cancel" onclick="closeModal()">キャンセル</button>
-          <button class="modal-button" onclick="saveInterview()">保存</button>
-        </div>
-      </div>
-    </div>
   </main>
 
   <footer>
@@ -139,35 +108,11 @@
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // モーダル操作
-    function openModal() {
-      const modal = document.getElementById('interviewModal');
-      modal.style.display = 'flex';
-      // 未来7日間の日付を動的に追加
-      const dateSelect = document.getElementById('interviewDate');
-      dateSelect.innerHTML = '';
-      const today = new Date();
-      for (let i = 1; i <= 7; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
-        const dateStr = date.toISOString().split('T')[0];
-        const option = document.createElement('option');
-        option.value = dateStr;
-        option.textContent = dateStr;
-        dateSelect.appendChild(option);
-      }
-    }
-
-    function closeModal() {
-      const modal = document.getElementById('interviewModal');
-      modal.style.display = 'none';
-    }
-
+    // 産業医面談の選択を保存
     function saveInterview() {
-      const date = document.getElementById('interviewDate').value;
-      const time = document.getElementById('interviewTime').value;
-      if (!date || !time) {
-        alert('日付と時間を選択してください。');
+      const interview = document.querySelector('input[name="interview"]:checked')?.value;
+      if (!interview) {
+        alert('面談の希望を選択してください。');
         return;
       }
       const company = stressForm.dataset.company;
@@ -177,13 +122,11 @@
         company,
         username,
         year: parseInt(year),
-        date,
-        time,
+        interview,
         timestamp: new Date().toISOString()
       };
       localStorage.setItem(`interview_${company}_${username}_${year}`, JSON.stringify(interviewData));
-      alert('面談希望日時を保存しました。');
-      closeModal();
+      alert('面談希望の選択を保存しました。');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -361,7 +304,12 @@
         let advice = "";
         if (highStressFlag) {
           guidance = `<p>以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。</p>` +
-                     `<button class="interview-button" onclick="openModal()">面談を希望する</button>`;
+                     `<div class="interview-selection">` +
+                     `<p>産業医面談を希望しますか？</p>` +
+                     `<label><input type="radio" name="interview" value="希望する" required> 希望する</label>` +
+                     `<label><input type="radio" name="interview" value="希望しない" required> 希望しない</label>` +
+                     `<button class="submit-button" onclick="saveInterview()">保存</button>` +
+                     `</div>`;
           advice = `<div class="advice-section">` +
                    `<h3>あなたへのアドバイス</h3>` +
                    `<ul>` +
