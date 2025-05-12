@@ -576,9 +576,8 @@
           if (existingSubmission) {
             const confirmEdit = confirm(`この年度（${currentYear}年）にはすでに提出済みです。結果を修正しますか？`);
             if (!confirmEdit) {
-              return; // 修正しない場合、ログイン画面に留まる
+              return;
             }
-            // 修正の場合、既存データをautosaveに保存して復元
             localStorage.setItem('autosave', existingSubmission);
           }
 
@@ -592,7 +591,6 @@
           stressForm.dataset.username = username;
           stressForm.dataset.year = currentYear;
 
-          // 提出済みデータの復元（修正の場合）
           if (existingSubmission) {
             const savedAnswers = JSON.parse(existingSubmission);
             restoreFormData(savedAnswers);
@@ -608,12 +606,10 @@
         const username = stressForm.dataset.username || '不明';
         const year = stressForm.dataset.year || '不明';
 
-        // PDFヘッダー
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(16);
         doc.text(`ストレスチェック結果 (${company} - ${username} - ${year}年度)`, 10, 10);
 
-        // スコア表
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(12);
         doc.text('あなたのスコア', 10, 20);
@@ -630,7 +626,6 @@
           headStyles: { fillColor: [200, 200, 200] },
         });
 
-        // 高ストレス判定
         let yPos = doc.lastAutoTable.finalY + 10;
         if (highStressFlag) {
           doc.setTextColor(255, 0, 0);
@@ -646,7 +641,6 @@
           yPos += 10;
         }
 
-        // アドバイス
         doc.text('あなたへのアドバイス', 10, yPos);
         yPos += 5;
         const adviceText = highStressFlag
@@ -658,7 +652,6 @@
             `- 職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。`;
         doc.text(adviceText, 10, yPos, { maxWidth: 190 });
 
-        // 解説
         yPos += 30;
         doc.text('結果の解説', 10, yPos);
         yPos += 5;
