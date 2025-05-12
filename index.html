@@ -35,20 +35,92 @@
     .submit-button {
       margin-top: 20px;
       padding: 12px 24px;
-      background-color: #007bff;
-      color: white;
-      border: none;
+      background-color: #0056b3;
+      color: #fff;
+      font-weight: 600;
+      border: 1px solid rgba(0, 0, 0, 0.1);
       border-radius: 5px;
       cursor: pointer;
       min-width: 120px;
       font-size: 16px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.2s, transform 0.2s, filter 0.2s;
     }
     .submit-button:hover {
-      background-color: #0056b3;
+      background-color: #004085;
+      filter: brightness(1.2);
+      transform: scale(1.05);
+    }
+    .filter-button {
+      margin: 10px 0;
+      padding: 8px 16px;
+      background-color: #28a745;
+      color: #fff;
+      font-weight: 600;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.2s, transform 0.2s, filter 0.2s;
+    }
+    .filter-button:hover {
+      background-color: #218838;
+      filter: brightness(1.2);
+      transform: scale(1.05);
     }
     .results {
       margin-top: 30px;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .results table {
+      margin: 10px 0;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .results th, .results td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    .results th {
+      background-color: #f0f0f0;
       font-weight: bold;
+    }
+    .high-stress-warning {
+      padding: 15px;
+      background-color: #ffe6e6;
+      border: 2px solid red;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #d32f2f;
+    }
+    .advice-section {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      border-radius: 5px;
+    }
+    .interview-button {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: #d32f2f;
+      color: #fff;
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+    }
+    .interview-button:hover {
+      background-color: #b71c1c;
+      filter: brightness(1.2);
     }
     input[type="text"], input[type="password"] {
       width: 100%;
@@ -61,19 +133,6 @@
     input[type="radio"], input[type="checkbox"] {
       margin-right: 8px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: #f0f0f0;
-    }
     .table-wrapper {
       overflow-x: auto;
     }
@@ -81,23 +140,15 @@
       color: red;
       font-weight: bold;
     }
-    .filter-button {
-      margin: 10px 0;
-      padding: 8px 16px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
     @media (max-width: 480px) {
       body {
         padding: 10px;
         font-size: 14px;
       }
-      .submit-button, .filter-button {
+      .submit-button, .filter-button, .interview-button {
         padding: 10px 20px;
         min-width: 100px;
+        font-size: 14px;
       }
       input[type="text"], input[type="password"] {
         padding: 8px;
@@ -105,7 +156,7 @@
       .question {
         margin-bottom: 15px;
       }
-      th, td {
+      .results th, .results td {
         padding: 6px;
         font-size: 12px;
       }
@@ -165,11 +216,13 @@
     </section>
 
     <section id="masterPasswordPanel" style="display:none; margin: 20px;">
+      <!-- INFOLINKS_OFF -->
       <h2>管理者パスワード一覧</h2>
       <p>全会社の管理者パスワードと関連する個人名を表示します。</p>
       <div class="table-wrapper">
         <div id="masterPasswordResults"></div>
       </div>
+      <!-- INFOLINKS_ON -->
     </section>
   </main>
 
@@ -306,7 +359,6 @@
         masterPasswordResults.innerHTML = html;
       }
 
-      // ストレスフォームのイベントリスナーをグローバルに定義
       stressForm.addEventListener('change', () => {
         console.log('ストレスフォーム変更検知');
         const formData = new FormData(stressForm);
@@ -330,38 +382,61 @@
           else if (section === 'C') totalC += score;
           else if (section === 'D') totalD += score;
         }
-        // 修正: 変数名をlet-evaluationからlet evaluationに変更
         let evaluation = "";
         let highStressFlag = false;
         let highStressReason = "";
         if (totalB >= 77) {
-          highStressReason = "B項目（最近の状態）の合計が77点以上";
-          evaluation += `<br><span style='color:red;'>[高ストレス該当] ${highStressReason}</span>`;
+          highStressReason = "最近の心身の状態（B項目）の合計が77点以上で、ストレスが高い状態です。";
+          evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
           highStressFlag = true;
         } else if ((totalA + totalC) >= 76 && totalB >= 63) {
-          highStressReason = "A+C（仕事と人間関係）の合計が76点以上かつB（最近の状態）が63点以上";
-          evaluation += `<br><span style='color:red;'>[高ストレス該当] ${highStressReason}</span>`;
+          highStressReason = "仕事や人間関係（A+C項目）の合計が76点以上、かつ心身の状態（B項目）が63点以上で、ストレスが高い状態です。";
+          evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
           highStressFlag = true;
         }
 
         let guidance = "";
+        let advice = "";
         if (highStressFlag) {
-          guidance = "<p style='color:darkred;'><strong>あなたは高ストレスの可能性があります。以下の理由で産業医との面談をおすすめします：<br>" +
-                    `- ${highStressReason}<br>` +
-                    "面談はメンタルヘルスをサポートし、職場環境の改善に役立ちます。希望する場合はチェックしてください（任意）。</strong></p>" +
-                    "<label><input type='checkbox' id='interview' name='interview' value='希望する'> 産業医面談を希望する</label>";
+          guidance = `<p>以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。</p>` +
+                     `<label><input type="checkbox" id="interview" name="interview" value="希望する"> 産業医面談を希望する</label>` +
+                     `<div><a href="mailto:support@example.com?subject=産業医面談希望" class="interview-button">面談を希望する</a></div>`;
+          advice = `<div class="advice-section">` +
+                   `<h3>あなたへのアドバイス</h3>` +
+                   `<ul>` +
+                   `<li>ストレスが高い状態です。産業医や専門家に相談することで、具体的な改善策が見つかります。</li>` +
+                   `<li>十分な休息やリラックスできる時間を意識的に確保しましょう。</li>` +
+                   `<li>職場での負担や人間関係について、上司や同僚とオープンに話す機会を検討してください。</li>` +
+                   `</ul>` +
+                   `</div>`;
+        } else {
+          advice = `<div class="advice-section">` +
+                   `<h3>あなたへのアドバイス</h3>` +
+                   `<ul>` +
+                   `<li>現在のストレス状態は良好です。引き続き健康的な生活習慣を維持しましょう。</li>` +
+                   `<li>定期的なストレスチェックで、変化に早めに気づくことが大切です。</li>` +
+                   `<li>職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。</li>` +
+                   `</ul>` +
+                   `</div>`;
         }
 
-        const explanation = "<p><strong>スコアの意味：</strong><br>" +
-                           "- A項目（仕事）：職場の負担や裁量を評価。高いほど仕事のストレスが多い。<br>" +
-                           "- B項目（最近の状態）：心身の健康状態。高いほどストレス症状が強い。<br>" +
-                           "- C項目（周囲との関係）：社会的支援。低いほど孤立感が強い。<br>" +
-                           "- D項目（満足度）：仕事や生活の満足度。低いほど不満が多い。<br>" +
-                           "高ストレスと判定された場合、産業医面談で具体的な対策を相談できます。</p>";
+        const scoreTable = `<table>` +
+                           `<tr><th>項目</th><th>あなたのスコア</th><th>基準値</th></tr>` +
+                           `<tr><td>仕事（A項目）</td><td>${totalA}点</td><td>高いほど仕事の負担が多い</td></tr>` +
+                           `<tr><td>心身の状態（B項目）</td><td>${totalB}点</td><td>77点以上で高ストレス</td></tr>` +
+                           `<tr><td>人間関係（C項目）</td><td>${totalC}点</td><td>低いほど支援が少ない</td></tr>` +
+                           `<tr><td>満足度（D項目）</td><td>${totalD}点</td><td>低いほど不満が多い</td></tr>` +
+                           `</table>`;
 
-        resultDiv.innerHTML =
-          `A項目合計: ${totalA}点<br>B項目合計: ${totalB}点<br>C項目合計: ${totalC}点<br>D項目合計: ${totalD}点<br><br>` +
-          `<strong>${evaluation}</strong><br>${guidance}<br>${explanation}`;
+        const explanation = `<h3>結果の解説</h3>` +
+                            `<ul>` +
+                            `<li><strong>仕事（A項目）</strong>：仕事の負担や裁量を評価。高いスコアは仕事のストレスが多いことを示します。</li>` +
+                            `<li><strong>心身の状態（B項目）</strong>：心や体の健康状態。高いスコアはストレス症状が強いことを示します。</li>` +
+                            `<li><strong>人間関係（C項目）</strong>：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。</li>` +
+                            `<li><strong>満足度（D項目）</strong>：仕事や生活の満足度。低いスコアは不満が多いことを示します。</li>` +
+                            `</ul>`;
+
+        resultDiv.innerHTML = `${evaluation}${scoreTable}${guidance}${explanation}${advice}`;
 
         const interview = document.getElementById('interview')?.checked ? '希望する' : '';
         const data = {
@@ -501,12 +576,67 @@
         const company = stressForm.dataset.company || '不明';
         const username = stressForm.dataset.username || '不明';
         const year = stressForm.dataset.year || '不明';
-        const resultText = document.getElementById('result').innerText;
 
-        doc.setFont('helvetica');
-        doc.setFontSize(12);
+        // PDFヘッダー
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
         doc.text(`ストレスチェック結果 (${company} - ${username} - ${year}年度)`, 10, 10);
-        doc.text(resultText, 10, 20);
+
+        // スコア表
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(12);
+        doc.text('あなたのスコア', 10, 20);
+        doc.autoTable({
+          startY: 25,
+          head: [['項目', 'スコア', '基準値']],
+          body: [
+            ['仕事（A項目）', `${totalA}点`, '高いほど仕事の負担が多い'],
+            ['心身の状態（B項目）', `${totalB}点`, '77点以上で高ストレス'],
+            ['人間関係（C項目）', `${totalC}点`, '低いほど支援が少ない'],
+            ['満足度（D項目）', `${totalD}点`, '低いほど不満が多い'],
+          ],
+          styles: { font: 'helvetica', fontSize: 10 },
+          headStyles: { fillColor: [200, 200, 200] },
+        });
+
+        // 高ストレス判定
+        let yPos = doc.lastAutoTable.finalY + 10;
+        if (highStressFlag) {
+          doc.setTextColor(255, 0, 0);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`高ストレス判定：${highStressReason}`, 10, yPos);
+          yPos += 10;
+          doc.setTextColor(0);
+          doc.setFont('helvetica', 'normal');
+          doc.text('産業医との面談をおすすめします。', 10, yPos);
+          yPos += 10;
+        } else {
+          doc.text('現在のストレス状態は良好です。', 10, yPos);
+          yPos += 10;
+        }
+
+        // アドバイス
+        doc.text('あなたへのアドバイス', 10, yPos);
+        yPos += 5;
+        const adviceText = highStressFlag
+          ? `- ストレスが高い状態です。産業医や専門家に相談しましょう。\n` +
+            `- 十分な休息やリラックスできる時間を確保してください。\n` +
+            `- 職場での負担や人間関係について、上司や同僚と話す機会を検討してください。`
+          : `- 現在のストレス状態は良好です。健康的な生活習慣を維持しましょう。\n` +
+            `- 定期的なストレスチェックで、変化に早めに気づくことが大切です。\n` +
+            `- 職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。`;
+        doc.text(adviceText, 10, yPos, { maxWidth: 190 });
+
+        // 解説
+        yPos += 30;
+        doc.text('結果の解説', 10, yPos);
+        yPos += 5;
+        const explanationText = `- 仕事（A項目）：仕事の負担や裁量を評価。高いスコアは仕事のストレスが多いことを示します。\n` +
+                               `- 心身の状態（B項目）：心や体の健康状態。高いスコアはストレス症状が強いことを示します。\n` +
+                               `- 人間関係（C項目）：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。\n` +
+                               `- 満足度（D項目）：仕事や生活の満足度。低いスコアは不満が多いことを示します。`;
+        doc.text(explanationText, 10, yPos, { maxWidth: 190 });
+
         doc.save(`${company}_${username}_${year}_stress_check.pdf`);
       });
 
