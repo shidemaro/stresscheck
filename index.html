@@ -83,6 +83,37 @@
       </div>
       <!-- INFOLINKS_ON -->
     </section>
+
+    <!-- 産業医面談モーダル -->
+    <div id="interviewModal" class="modal">
+      <div class="modal-content">
+        <h3>産業医面談の希望日時を選択</h3>
+        <div class="form-group">
+          <label for="interviewDate">希望日</label>
+          <select id="interviewDate" required>
+            <!-- 日付はJSで動的に追加 -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="interviewTime">希望時間</label>
+          <select id="interviewTime" required>
+            <option value="09:00">09:00</option>
+            <option value="10:00">10:00</option>
+            <option value="11:00">11:00</option>
+            <option value="12:00">12:00</option>
+            <option value="13:00">13:00</option>
+            <option value="14:00">14:00</option>
+            <option value="15:00">15:00</option>
+            <option value="16:00">16:00</option>
+            <option value="17:00">17:00</option>
+          </select>
+        </div>
+        <div class="button-group">
+          <button class="modal-button cancel" onclick="closeModal()">キャンセル</button>
+          <button class="modal-button" onclick="saveInterview()">保存</button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer>
@@ -106,6 +137,53 @@
       const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // モーダル操作
+    function openModal() {
+      const modal = document.getElementById('interviewModal');
+      modal.style.display = 'flex';
+      // 未来7日間の日付を動的に追加
+      const dateSelect = document.getElementById('interviewDate');
+      dateSelect.innerHTML = '';
+      const today = new Date();
+      for (let i = 1; i <= 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const option = document.createElement('option');
+        option.value = dateStr;
+        option.textContent = dateStr;
+        dateSelect.appendChild(option);
+      }
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('interviewModal');
+      modal.style.display = 'none';
+    }
+
+    function saveInterview() {
+      const date = document.getElementById('interviewDate').value;
+      const time = document.getElementById('interviewTime').value;
+      if (!date || !time) {
+        alert('日付と時間を選択してください。');
+        return;
+      }
+      const company = stressForm.dataset.company;
+      const username = stressForm.dataset.username;
+      const year = stressForm.dataset.year;
+      const interviewData = {
+        company,
+        username,
+        year: parseInt(year),
+        date,
+        time,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem(`interview_${company}_${username}_${year}`, JSON.stringify(interviewData));
+      alert('面談希望日時を保存しました。');
+      closeModal();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -193,9 +271,10 @@
           const div = document.createElement('div');
           div.className = 'question';
           const qNum = idx + 1;
-          div.innerHTML = `<p>${q}</p>` + labels.map((label, i) =>
-            `<label><input type="radio" name="${prefix}${qNum}" value="${i+1}" required>${label}</label>`
-          ).join(' ');
+          div.innerHTML = `<p>${q}</p><div class="options">` + 
+            labels.map((label, i) => 
+              `<label><input type="radio" name="${prefix}${qNum}" value="${i+1}" required>${label}</label>`
+            ).join('') + `</div>`;
           section.appendChild(div);
         });
       }
@@ -282,8 +361,7 @@
         let advice = "";
         if (highStressFlag) {
           guidance = `<p>以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。</p>` +
-                     `<label><input type="checkbox" id="interview" name="interview" value="希望する"> 産業医面談を希望する</label>` +
-                     `<div><a href="mailto:support@example.com?subject=産業医面談希望" class="interview-button">面談を希望する</a></div>`;
+                     `<button class="interview-button" onclick="openModal()">面談を希望する</button>`;
           advice = `<div class="advice-section">` +
                    `<h3>あなたへのアドバイス</h3>` +
                    `<ul>` +
@@ -321,7 +399,6 @@
 
         resultDiv.innerHTML = `${evaluation}${scoreTable}${guidance}${explanation}${advice}`;
 
-        const interview = document.getElementById('interview')?.checked ? '希望する' : '';
         const data = {
           company: stressForm.dataset.company,
           name: stressForm.dataset.username,
@@ -330,7 +407,6 @@
           totalB,
           totalC,
           totalD,
-          interview,
           highStress: highStressFlag,
           highStressReason,
           timestamp: new Date().toISOString()
@@ -402,9 +478,7 @@
             const count = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
               .filter(key => key.startsWith(`stress_${company}_`)).length;
             const interviewCount = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
-              .filter(key => key.startsWith(`stress_${company}_`))
-              .map(key => JSON.parse(localStorage.getItem(key)))
-              .filter(item => item.interview === '希望する').length;
+              .filter(key => key.startsWith(`interview_${company}_`)).length;
             const countDiv = document.createElement('div');
             countDiv.style.fontWeight = 'bold';
             countDiv.style.marginBottom = '10px';
@@ -419,9 +493,7 @@
               const count = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
                 .filter(key => key.startsWith(`stress_${company}_`)).length;
               const interviewCount = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
-                .filter(key => key.startsWith(`stress_${company}_`))
-                .map(key => JSON.parse(localStorage.getItem(key)))
-                .filter(item => item.interview === '希望する').length;
+                .filter(key => key.startsWith(`interview_${company}_`)).length;
               const countDiv = document.createElement('div');
               countDiv.style.fontWeight = 'bold';
               countDiv.style.marginBottom = '10px';
@@ -542,11 +614,10 @@
 
         dataList.sort((a, b) => b.totalB - a.totalB);
 
-        const rows = [["氏名", "年度", "会社名", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "面談希望", "回答日時"]];
+        const rows = [["氏名", "年度", "会社名", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
         for (const item of dataList) {
           const highStress = item.highStress ? 'はい' : 'いいえ';
-          const interview = item.interview || '';
-          rows.push([item.name || '', item.year, item.company || '', item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', interview, item.timestamp]);
+          rows.push([item.name || '', item.year, item.company || '', item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', item.timestamp]);
         }
 
         const csvContent = rows.map(r => r.join(",")).join("\n");
@@ -564,7 +635,7 @@
       function loadAdminData(company, highStressOnly = false) {
         console.log(`管理者データ読み込み: ${company}, 高ストレスのみ: ${highStressOnly}`);
         let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                   "<tr><th>氏名</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>面談希望</th><th>回答日時</th></tr>";
+                   "<tr><th>氏名</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
         let dataList = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
@@ -580,8 +651,7 @@
 
         for (const item of dataList) {
           const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
-          const interview = item.interview ? '<span class="high-stress">希望する</span>' : '';
-          html += `<tr><td>${item.name || ""}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${interview}</td><td>${item.timestamp}</td></tr>`;
+          html += `<tr><td>${item.name || ""}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
         }
         html += "</table>";
 
@@ -607,7 +677,7 @@
       function loadAllData(highStressOnly = false) {
         console.log(`全データ読み込み, 高ストレスのみ: ${highStressOnly}`);
         let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                   "<tr><th>会社名</th><th>氏名</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>面談希望</th><th>回答日時</th></tr>";
+                   "<tr><th>会社名</th><th>氏名</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
         let dataList = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
@@ -621,12 +691,11 @@
 
         dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
 
-        const rows = [["会社名", "氏名", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "面談希望", "回答日時"]];
+        const rows = [["会社名", "氏名", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
         for (const item of dataList) {
           const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
-          const interview = item.interview ? '<span class="high-stress">希望する</span>' : '';
-          html += `<tr><td>${item.company}</td><td>${item.name}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${interview}</td><td>${item.timestamp}</td></tr>`;
-          rows.push([item.company, item.name, item.year, item.totalA, item.totalB, item.totalC, item.totalD, item.highStress ? 'はい' : 'いいえ', item.highStressReason || '', item.interview || '', item.timestamp]);
+          html += `<tr><td>${item.company}</td><td>${item.name}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
+          rows.push([item.company, item.name, item.year, item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', item.timestamp]);
         }
         html += "</table>";
 
