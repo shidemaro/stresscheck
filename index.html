@@ -110,7 +110,7 @@
         font-size: 12px;
       }
     }
-  </ STYLE>
+  </style>
 </head>
 <body>
   <header>
@@ -164,7 +164,6 @@
       <button id="exportAllCSV" class="submit-button">すべてCSVダウンロード</button>
     </section>
 
-    <!-- 新しいセクション: パスワード一覧表示 -->
     <section id="masterPasswordPanel" style="display:none; margin: 20px;">
       <h2>管理者パスワード一覧</h2>
       <p>全会社の管理者パスワードと関連する個人名を表示します。</p>
@@ -272,14 +271,12 @@
         });
       }
 
-      // 新しい関数: 管理者パスワードと個人名の一覧を表示
       function loadPasswordData() {
         let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
                    "<tr><th>会社名</th><th>管理者パスワード</th><th>個人名</th></tr>";
         let companies = new Set();
         let companyData = {};
 
-        // 管理者パスワードの収集
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
           if (key.startsWith('adminpass_')) {
@@ -289,7 +286,6 @@
           }
         }
 
-        // 個人名の収集
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
           if (key.startsWith('stress_')) {
@@ -300,7 +296,6 @@
           }
         }
 
-        // テーブル生成
         for (const company of companies) {
           const password = companyData[company].password || '未設定';
           const users = Array.from(companyData[company].users).join(', ') || 'なし';
@@ -318,7 +313,6 @@
         const username = document.getElementById('username').value.trim();
         const isAdmin = document.getElementById('adminCheck').checked;
 
-        // 新しいマスターログイン条件: master/sakaue0000m
         if (company === 'master' && password === 'sakaue0000m') {
           loginForm.style.display = 'none';
           masterPasswordPanel.style.display = 'block';
@@ -326,7 +320,6 @@
           return;
         }
 
-        // 既存のマスターログイン: master/masterpass
         if (company === 'master' && password === 'masterpass') {
           loginForm.style.display = 'none';
           adminMaster.style.display = 'block';
@@ -439,7 +432,7 @@
               else if (section === 'C') totalC += score;
               else if (section === 'D') totalD += score;
             }
-            let evaluation = "";
+            let-evaluation = "";
             let highStressFlag = false;
             let highStressReason = "";
             if (totalB >= 77) {
