@@ -3,175 +3,205 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ストレスチェックで仕事や生活のストレスを評価。簡単な質問でメンタルヘルスをサポート。">
+  <meta name="keywords" content="ストレスチェック, メンタルヘルス, 職場ストレス">
   <title>ストレスチェック</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Noto Sans JP', 'Segoe UI', sans-serif;
-      background-color: #f9f9f9;
-      color: #333;
+    /* 上記の共通CSSをここにペースト */
+    * {
       margin: 0;
-      padding: 20px;
-      font-size: 16px;
-      line-height: 1.5;
+      padding: 0;
+      box-sizing: border-box;
     }
-    header, footer {
-      background-color: #007bff;
-      color: white;
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #F7FAFC;
+      color: #2D3748;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+    header {
+      background-color: #FFFFFF;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 1rem 0;
+    }
+    header h1 {
+      font-size: 1.5rem;
+      color: #2B6CB0;
       text-align: center;
-      padding: 10px 0;
+      margin-bottom: 0.5rem;
+    }
+    nav {
+      text-align: center;
+    }
+    nav a {
+      color: #2D3748;
+      text-decoration: none;
+      margin: 0 1rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a:hover {
+      color: #2B6CB0;
     }
     main {
-      max-width: 800px;
-      margin: auto;
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
     }
-    .question {
-      margin-bottom: 20px;
+    section {
+      background-color: #FFFFFF;
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      margin-bottom: 2rem;
     }
-    .options label {
-      margin-right: 15px;
-      display: inline-block;
-      margin-bottom: 10px;
+    h1, h2 {
+      color: #2D3748;
+      margin-bottom: 1rem;
     }
-    .submit-button {
-      margin-top: 20px;
-      padding: 12px 24px;
-      background-color: #0056b3;
-      color: #fff;
-      font-weight: 600;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-radius: 5px;
-      cursor: pointer;
-      min-width: 120px;
-      font-size: 16px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      transition: background-color 0.2s, transform 0.2s, filter 0.2s;
+    p, ul {
+      margin-bottom: 1.5rem;
     }
-    .submit-button:hover {
-      background-color: #004085;
-      filter: brightness(1.2);
-      transform: scale(1.05);
+    ul {
+      list-style: disc;
+      padding-left: 1.5rem;
     }
-    .filter-button {
-      margin: 10px 0;
-      padding: 8px 16px;
-      background-color: #28a745;
-      color: #fff;
-      font-weight: 600;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-radius: 5px;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      transition: background-color 0.2s, transform 0.2s, filter 0.2s;
-    }
-    .filter-button:hover {
-      background-color: #218838;
-      filter: brightness(1.2);
-      transform: scale(1.05);
-    }
-    .results {
-      margin-top: 30px;
-      padding: 20px;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    .results table {
-      margin: 10px 0;
-      border-collapse: collapse;
-      width: 100%;
-    }
-    .results th, .results td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: left;
-    }
-    .results th {
-      background-color: #f0f0f0;
-      font-weight: bold;
-    }
-    .high-stress-warning {
-      padding: 15px;
-      background-color: #ffe6e6;
-      border: 2px solid red;
-      border-radius: 5px;
-      margin-bottom: 20px;
-      font-weight: bold;
-      color: #d32f2f;
-    }
-    .advice-section {
-      margin-top: 20px;
-      padding: 15px;
-      background-color: #e8f5e9;
-      border: 1px solid #c8e6c9;
-      border-radius: 5px;
-    }
-    .interview-button {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 10px 20px;
-      background-color: #d32f2f;
-      color: #fff;
-      font-weight: 600;
-      border-radius: 5px;
-      cursor: pointer;
-      text-align: center;
+    a {
+      color: #2B6CB0;
       text-decoration: none;
     }
-    .interview-button:hover {
-      background-color: #b71c1c;
-      filter: brightness(1.2);
+    a:hover {
+      text-decoration: underline;
     }
-    .notice {
-      padding: 10px;
-      background-color: #fff3cd;
-      border: 1px solid #ffeeba;
-      border-radius: 5px;
-      margin-bottom: 20px;
-      color: #856404;
-      font-weight: 500;
+    .submit-button, .filter-button, .interview-button {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background-color: #2B6CB0;
+      color: #FFFFFF;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+    .submit-button:hover, .filter-button:hover, .interview-button:hover {
+      background-color: #2C5282;
+      transform: translateY(-2px);
+    }
+    .filter-button {
+      background-color: #38A169;
+    }
+    .filter-button:hover {
+      background-color: #2F855A;
+    }
+    .interview-button {
+      background-color: #E53E3E;
+    }
+    .interview-button:hover {
+      background-color: #C53030;
     }
     input[type="text"], input[type="password"] {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 16px;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #E2E8F0;
+      border-radius: 6px;
+      font-size: 1rem;
     }
     input[type="radio"], input[type="checkbox"] {
-      margin-right: 8px;
+      margin-right: 0.5rem;
+    }
+    .notice {
+      background-color: #FEF6E9;
+      border: 1px solid #FEEBC8;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      color: #7B341E;
+    }
+    .results {
+      background-color: #F7FAFC;
+      padding: 1.5rem;
+      border-radius: 6px;
+      margin-top: 1.5rem;
+    }
+    .results table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+    .results th, .results td {
+      border: 1px solid #E2E8F0;
+      padding: 0.75rem;
+      text-align: left;
+    }
+    .results th {
+      background-color: #EDF2F7;
+      font-weight: 600;
+    }
+    .high-stress-warning {
+      background-color: #FFF5F5;
+      border: 2px solid #F56565;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      color: #742A2A;
+    }
+    .advice-section {
+      background-color: #F0FFF4;
+      border: 1px solid #C6F6D5;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1.5rem;
+    }
+    .high-stress {
+      color: #E53E3E;
+      font-weight: bold;
     }
     .table-wrapper {
       overflow-x: auto;
     }
-    .high-stress {
-      color: red;
-      font-weight: bold;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    section {
+      animation: fadeIn 0.5s ease-out;
     }
     @media (max-width: 480px) {
       body {
         padding: 10px;
         font-size: 14px;
       }
+      header h1 {
+        font-size: 1.25rem;
+      }
+      nav a {
+        display: block;
+        margin: 0.5rem 0;
+      }
+      section {
+        padding: 1rem;
+      }
       .submit-button, .filter-button, .interview-button {
-        padding: 10px 20px;
-        min-width: 100px;
-        font-size: 14px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
       }
       input[type="text"], input[type="password"] {
-        padding: 8px;
-      }
-      .question {
-        margin-bottom: 15px;
+        padding: 0.5rem;
       }
       .results th, .results td {
-        padding: 6px;
-        font-size: 12px;
+        padding: 0.5rem;
+        font-size: 0.85rem;
       }
       .notice {
-        font-size: 12px;
-        padding: 8px;
+        padding: 0.75rem;
+        font-size: 0.85rem;
       }
     }
   </style>
@@ -179,12 +209,22 @@
 <body>
   <header>
     <h1>ストレスチェック</h1>
+    <nav>
+      <a href="/stresscheck/index.html">ホーム</a>
+      <a href="/stresscheck/howto.html">使い方</a>
+      <a href="/stresscheck/about.html">このサイトについて</a>
+      <a href="/stresscheck/faq.html">FAQ</a>
+      <a href="/stresscheck/contact.html">お問い合わせ</a>
+      <a href="/stresscheck/tips.html">ストレス管理のヒント</a>
+      <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
+    </nav>
   </header>
 
   <main>
     <section id="intro">
-      <p>簡単なストレスチェックを実施できます。年度ごとに1回のみ提出可能です。</p>
-      <div class="notice">注意：ストレスチェックは1年1度の提出です。提出済みの場合は修正が可能です。</div>
+      <h2>ストレスチェックを始めよう</h2>
+      <p>簡単な質問で、仕事や生活のストレスを評価できます。年度ごとに1回のみ提出可能です。</p>
+      <div class="notice">注意：ストレスチェックは1年1度の提出です。提出済みの場合は修正が可能です。パスワードを他人と共有しないでください。</div>
       <form id="login-form">
         <input type="text" id="company" placeholder="会社名" required aria-label="会社名">
         <input type="password" id="password" placeholder="パスワード" required aria-label="パスワード">
@@ -195,15 +235,16 @@
     </section>
 
     <section id="checklist" style="display:none;">
-      <div class="notice">注意：提出は1年1度までです。修正は可能です。</div>
+      <h2>ストレスチェック</h2>
+      <div class="notice">注意：提出は1年1度までです。修正は可能です。パスワードを他人と共有しないでください。</div>
       <form id="stressForm">
-        <h2>A. 仕事について</h2>
+        <h3>A. 仕事について</h3>
         <div id="sectionA"></div>
-        <h2>B. 最近の状態</h2>
+        <h3>B. 最近の状態</h3>
         <div id="sectionB"></div>
-        <h2>C. 周囲との関係</h2>
+        <h3>C. 周囲との関係</h3>
         <div id="sectionC"></div>
-        <h2>D. 満足度について</h2>
+        <h3>D. 満足度について</h3>
         <div id="sectionD"></div>
         <button type="submit" class="submit-button">送信</button>
       </form>
@@ -220,7 +261,7 @@
       <button id="exportCSV" class="submit-button">CSVダウンロード</button>
     </section>
 
-    <section id="adminMaster" style="display:none; margin: 20px;">
+    <section id="adminMaster" style="display:none;">
       <h2>マスターログイン</h2>
       <p>全会社の回答データを表示します。</p>
       <button id="filterHighStressMaster" class="filter-button">高ストレス者のみ表示</button>
@@ -230,7 +271,7 @@
       <button id="exportAllCSV" class="submit-button">すべてCSVダウンロード</button>
     </section>
 
-    <section id="masterPasswordPanel" style="display:none; margin: 20px;">
+    <section id="masterPasswordPanel" style="display:none;">
       <!-- INFOLINKS_OFF -->
       <h2>管理者パスワード一覧</h2>
       <p>全会社の管理者パスワードと関連する個人名を表示します。</p>
@@ -241,12 +282,29 @@
     </section>
   </main>
 
- <footer>
-  <p>© 2025 ストレスチェックシステム | <a href="/stresscheck/privacy.html">プライバシーポリシー</a></p>
-</footer>
+  <footer>
+    <p>© 2025 ストレスチェックシステム | 運営：ストレスチェックチーム</p>
+    <p>
+      <a href="/stresscheck/index.html">ホーム</a> |
+      <a href="/stresscheck/howto.html">使い方</a> |
+      <a href="/stresscheck/about.html">このサイトについて</a> |
+      <a href="/stresscheck/faq.html">FAQ</a> |
+      <a href="/stresscheck/contact.html">お問い合わせ</a> |
+      <a href="/stresscheck/tips.html">ストレス管理のヒント</a> |
+      <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
+    </p>
+  </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
+    // パスワードハッシュ化関数
+    async function hashPassword(password) {
+      const msgBuffer = new TextEncoder().encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const loginForm = document.getElementById('login-form');
       const checklist = document.getElementById('checklist');
@@ -341,7 +399,7 @@
 
       function loadPasswordData() {
         let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                   "<tr><th>会社名</th><th>管理者パスワード</th><th>個人名</th></tr>";
+                   "<tr><th>会社名</th><th>管理者パスワード（ハッシュ）</th><th>個人名</th></tr>";
         let companies = new Set();
         let companyData = {};
 
@@ -480,7 +538,7 @@
         localStorage.removeItem('autosave');
       });
 
-      loginForm.addEventListener('submit', function(e) {
+      loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         console.log('ログイン処理開始');
         const company = document.getElementById('company').value.trim();
@@ -488,6 +546,7 @@
         const username = document.getElementById('username').value.trim();
         const isAdmin = document.getElementById('adminCheck').checked;
 
+        // 注意：マスターパスワードはハードコーディングされており、セキュリティリスクが高い。本番では削除し、動的設定を推奨
         if (company === 'master' && password === 'sakaue0000m') {
           console.log('マスターログイン（パスワード一覧）');
           loginForm.style.display = 'none';
@@ -533,7 +592,8 @@
           console.log('管理者ログイン処理');
           const savedPass = localStorage.getItem("adminpass_" + company);
           if (!savedPass) {
-            localStorage.setItem("adminpass_" + company, password);
+            const hashed = await hashPassword(password);
+            localStorage.setItem("adminpass_" + company, hashed);
             alert("管理者パスワードを新規登録しました。次回からこのパスワードが必要です。");
             loginForm.style.display = 'none';
             adminPanel.style.display = 'block';
@@ -549,24 +609,27 @@
             countDiv.style.marginBottom = '10px';
             countDiv.textContent = `提出済み人数: ${count}人　／　面談希望者: ${interviewCount}人`;
             adminResults.prepend(countDiv);
-          } else if (savedPass === password) {
-            loginForm.style.display = 'none';
-            adminPanel.style.display = 'block';
-            loadAdminData(company);
-            const count = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
-              .filter(key => key.startsWith(`stress_${company}_`)).length;
-            const interviewCount = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
-              .filter(key => key.startsWith(`stress_${company}_`))
-              .map(key => JSON.parse(localStorage.getItem(key)))
-              .filter(item => item.interview === '希望する').length;
-            const countDiv = document.createElement('div');
-            countDiv.style.fontWeight = 'bold';
-            countDiv.style.marginBottom = '10px';
-            countDiv.textContent = `提出済み人数: ${count}人　／　面談希望者: ${interviewCount}人`;
-            adminResults.prepend(countDiv);
           } else {
-            alert("管理者パスワードが違います。");
-            return;
+            const hashedInput = await hashPassword(password);
+            if (hashedInput === savedPass) {
+              loginForm.style.display = 'none';
+              adminPanel.style.display = 'block';
+              loadAdminData(company);
+              const count = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
+                .filter(key => key.startsWith(`stress_${company}_`)).length;
+              const interviewCount = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
+                .filter(key => key.startsWith(`stress_${company}_`))
+                .map(key => JSON.parse(localStorage.getItem(key)))
+                .filter(item => item.interview === '希望する').length;
+              const countDiv = document.createElement('div');
+              countDiv.style.fontWeight = 'bold';
+              countDiv.style.marginBottom = '10px';
+              countDiv.textContent = `提出済み人数: ${count}人　／　面談希望者: ${interviewCount}人`;
+              adminResults.prepend(countDiv);
+            } else {
+              alert("管理者パスワードが違います。");
+              return;
+            }
           }
         } else {
           console.log('通常ログイン処理');
