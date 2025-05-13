@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="/stresscheck/styles.css?v=20250514">
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Infolinksスクリプト -->
   <script type="text/javascript">
     var infolinks_pid = 3436126;
     var infolinks_wsid = 0;
@@ -94,12 +95,14 @@
       <button id="exportAllCSV" class="submit-button">すべてCSVダウンロード</button>
     </section>
 
-    <section id="masterPasswordPanel" style="display:none !important; visibility:hidden !  style="display:none !important; visibility:hidden !important;">
+    <section id="masterPasswordPanel" style="display:none !important; visibility:hidden !important;">
+      <!-- INFOLINKS_OFF -->
       <h2>管理者パスワード一覧</h2>
       <p>全会社の管理者パスワードと関連する匿名IDを表示します。</p>
       <div class="table-wrapper">
         <div id="masterPasswordResults"></div>
       </div>
+      <!-- INFOLINKS_ON -->
     </section>
   </main>
 
@@ -118,12 +121,7 @@
   </footer>
 
   <script>
-    let answers = [];
-    let questionIndex = -1;
-    let totalA = 0, totalB = 0, totalC = 0, totalD = 0;
-    let highStressFlag = false;
-    let highStressReason = '';
-
+    // 産業医面談の選択を保存
     function saveInterview() {
       const interview = document.querySelector('input[name="interview"]:checked')?.value;
       if (!interview) {
@@ -139,58 +137,7 @@
         timestamp: new Date().toISOString()
       };
       localStorage.setItem(`interview_${anonymousId}_${year}`, JSON.stringify(interviewData));
-
-      if (answers.length > 0) {
-        const summary = { id: anonymousId, text: answers.join(', ') };
-        const tsv = Papa.unparse([{ 匿名ID: summary.id, 要因: summary.text }], { delimiter: '\t' });
-        localStorage.setItem(`summary_${anonymousId}_${year}`, tsv);
-        const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `summary_${anonymousId}_${year}.tsv`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-
-      alert('面談希望と問診の選択を保存しました。');
-      resetInterview();
-    }
-
-    function showQuestion() {
-      const greeting = 'ストレスが高い結果となりました。お気持ちを少しお聞かせいただければ、産業医の面談をスムーズに進められます。3～5分で完了しますので、どうぞご安心ください。';
-      const questions = [
-        '最近、どのようなストレスを感じていらっしゃいますか？（例：お仕事、家庭、健康など）',
-        'お仕事のストレスであれば、特にどのようなご負担でしょうか？（例：業務量、人間関係、評価など）',
-        '業務量がご負担の場合、どの程度の負荷でしょうか？（例：残業時間、タスク量など）',
-        '人間関係がご負担の場合、どのような方との関係でしょうか？（例：上司、同僚、顧客など）',
-        '他にストレスを感じていらっしゃる点があれば、ぜひお聞かせください。'
-      ];
-      const questionContainer = document.getElementById('questionContainer');
-      questionContainer.innerHTML = questionIndex === 0 ? `<p>${greeting}</p>` : `<p>${questions[questionIndex - 1]}</p>`;
-      document.getElementById('interviewInput').value = '';
-    }
-
-    function submitAnswer() {
-      const input = document.getElementById('interviewInput').value.trim();
-      if (!input) {
-        alert('回答を入力してください。');
-        return;
-      }
-      answers.push(input);
-      questionIndex++;
-      if (questionIndex <= 5) {
-        showQuestion();
-      } else {
-        saveInterview();
-      }
-    }
-
-    function resetInterview() {
-      answers = [];
-      questionIndex = -1;
-      document.getElementById('checklist').style.display = 'none';
-      document.getElementById('result').style.display = 'block';
+      alert('面談希望の選択を保存しました。');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -207,9 +154,11 @@
       const sectionB = document.getElementById('sectionB');
       const sectionC = document.getElementById('sectionC');
       const sectionD = document.getElementById('sectionD');
+      const adminResults = document.getElementById('adminResults');
       const masterResults = document.getElementById('masterResults');
       const masterPasswordResults = document.getElementById('masterPasswordResults');
 
+      // 初期化：不要セクションを強制非表示
       checklist.style.display = 'none';
       checklist.style.visibility = 'hidden';
       adminPanel.style.display = 'none';
@@ -362,7 +311,7 @@
         console.log('ストレスフォーム送信');
         try {
           const formData = new FormData(stressForm);
-          totalA = 0, totalB = 0, totalC = 0, totalD = 0;
+          let totalA = 0, totalB = 0, totalC = 0, totalD = 0;
           for (let [key, value] of formData.entries()) {
             const score = parseInt(value);
             const section = key.charAt(0);
@@ -372,8 +321,8 @@
             else if (section === 'D') totalD += score;
           }
           let evaluation = "";
-          highStressFlag = false;
-          highStressReason = "";
+          let highStressFlag = false;
+          let highStressReason = "";
           if (totalB >= 77) {
             highStressReason = "最近の心身の状態（B項目）の合計が77点以上で、ストレスが高い状態です。";
             evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
@@ -392,12 +341,6 @@
                        `<p>産業医面談を希望しますか？</p>` +
                        `<label><input type="radio" name="interview" value="希望する" required> 希望する</label>` +
                        `<label><input type="radio" name="interview" value="希望しない" required> 希望しない</label>` +
-                       `<div id="interviewQuestions" style="margin-top: 20px;">` +
-                       `<p>ストレス要因の問診（5問）を行います。以下の質問にご回答ください。</p>` +
-                       `<div id="questionContainer"></div>` +
-                       `<textarea id="interviewInput" placeholder="こちらにご入力ください" style="width: 100%; height: 100px;"></textarea>` +
-                       `<button class="submit-button" onclick="submitAnswer()">次へ</button>` +
-                       `</div>` +
                        `<button class="submit-button" onclick="saveInterview()">保存</button>` +
                        `</div>`;
             advice = `<div class="advice-section">` +
@@ -452,11 +395,6 @@
           localStorage.setItem(`stress_${data.anonymousId}_${data.year}`, JSON.stringify(data));
 
           localStorage.removeItem('autosave');
-
-          if (highStressFlag) {
-            showQuestion();
-          }
-          console.log('結果画面表示完了: 高ストレス=', highStressFlag);
         } catch (error) {
           console.error('ストレスチェック送信エラー:', error);
           alert('送信に失敗しました。すべての質問に回答してください。');
@@ -615,6 +553,87 @@
         }
       });
 
+      document.getElementById('exportCSV').addEventListener('click', () => {
+        console.log('CSVダウンロード開始');
+        try {
+          const anonymousId = stressForm.dataset.anonymousId;
+          const companyCode = anonymousId ? anonymousId.split('_')[0] : '';
+          let dataList = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(`stress_`) && key.includes(companyCode)) {
+              const item = JSON.parse(localStorage.getItem(key));
+              dataList.push(item);
+            }
+          }
+
+          dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
+
+          const rows = [["匿名ID", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
+          for (const item of dataList) {
+            const highStress = item.highStress ? 'はい' : 'いいえ';
+            rows.push([item.anonymousId || '', item.year, item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', item.timestamp]);
+          }
+
+          const csvContent = rows.map(r => r.join(",")).join("\n");
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${companyCode}_stress_check.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          console.log('CSVダウンロード完了');
+        } catch (error) {
+          console.error('CSVダウンロードエラー:', error);
+          alert('CSVの保存に失敗しました。もう一度お試しください。');
+        }
+      });
+
+      function loadAdminData(companyCode, highStressOnly = false) {
+        console.log(`管理者データ読み込み: ${companyCode}, 高ストレスのみ: ${highStressOnly}`);
+        let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                   "<tr><th>匿名ID</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
+        let dataList = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith(`stress_`) && key.includes(companyCode)) {
+            const item = JSON.parse(localStorage.getItem(key));
+            if (!highStressOnly || item.highStress) {
+              dataList.push(item);
+            }
+          }
+        }
+
+        dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
+
+        for (const item of dataList) {
+          const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+          html += `<tr><td>${item.anonymousId || ''}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
+        }
+        html += "</table>";
+
+        html += "<h3>年度ごとの比較</h3>";
+        const users = [...new Set(dataList.map(item => item.anonymousId))];
+        for (const user of users) {
+          const userData = dataList.filter(item => item.anonymousId === user).sort((a, b) => a.year - b.year);
+          if (userData.length > 1) {
+            html += `<h4>${user}</h4>`;
+            html += "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                    "<tr><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th></tr>";
+            for (const item of userData) {
+              const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+              html += `<tr><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td></tr>`;
+            }
+            html += "</table>";
+          }
+        }
+
+        adminResults.innerHTML = html;
+      }
+
       function loadAllData(highStressOnly = false) {
         console.log(`全データ読み込み, 高ストレスのみ: ${highStressOnly}`);
         let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
@@ -671,14 +690,21 @@
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
         };
-        console.log('全データロード完了');
       }
+
+      document.getElementById('filterHighStress')?.addEventListener('click', () => {
+        console.log('高ストレスフィルタ（管理者）');
+        const anonymousId = stressForm.dataset.anonymousId;
+        const companyCode = anonymousId ? anonymousId.split('_')[0] : '';
+        loadAdminData(companyCode, true);
+      });
 
       document.getElementById('filterHighStressMaster')?.addEventListener('click', () => {
         console.log('高ストレスフィルタ（マスター）');
         loadAllData(true);
       });
 
+      // ページロード完了後、非表示を再確認
       window.onload = () => {
         checklist.style.display = 'none';
         checklist.style.visibility = 'hidden';
@@ -693,6 +719,7 @@
         console.log('window.onload: 非表示再確認');
       };
 
+      // 遅延対策：1秒後に非表示再確認
       setTimeout(() => {
         checklist.style.display = 'none';
         checklist.style.visibility = 'hidden';
