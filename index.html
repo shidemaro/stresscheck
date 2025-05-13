@@ -8,8 +8,6 @@
     <title>ストレスチェック</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/stresscheck/styles.css">
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   </head>
@@ -95,7 +93,7 @@
         <p>事業所コードを入力して高ストレス者のデータを確認してください。</p>
         <input type="text" id="adminCompanyCode" placeholder="事業所コード（例：COMPANY_abc123）" required aria-label="事業所コード">
         <button onclick="loadAdminData()">データ表示</button>
-        <button id="filterHighStress" class="filter-button">高ストレス者のみ表示</button>
+        <button id="filterHighStress" class="filter-button" data-active="false">高ストレス者のみ表示</button>
         <div class="table-wrapper">
           <div id="adminResults"></div>
         </div>
@@ -117,18 +115,6 @@
     </footer>
 
     <script>
-      const firebaseConfig = {
-        // あなたのFirebaseプロジェクトの設定をここに
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
-      };
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
-
       let companyCode = '';
       let anonymousId = '';
       let answers = [];
@@ -144,53 +130,53 @@
         });
       }
 
-      async function generateIds() {
-        const companyName = document.getElementById('companyName').value.trim();
-        const employeeCount = parseInt(document.getElementById('employeeCount').value);
-        if (!companyName || !employeeCount || employeeCount < 1) {
-          alert('会社名と有効な従業員数を入力してください。');
-          return;
+      function generateIds() {
+        try {
+          const companyName = document.getElementById('companyName').value.trim();
+          const employeeCount = parseInt(document.getElementById('employeeCount').value);
+          if (!companyName || !employeeCount || employeeCount < 1) {
+            alert('会社名と有効な従業員数を入力してください。');
+            return;
+          }
+          companyCode = 'COMPANY_' + generateUUID().split('-')[0];
+          const ids = [];
+          for (let i = 1; i <= employeeCount; i++) {
+            const id = `ID_${companyCode}_${String(i).padStart(3, '0')}`;
+            ids.push({ 匿名ID: id });
+          }
+          localStorage.setItem(`ids_${companyCode}`, JSON.stringify(ids));
+          const csv = Papa.unparse(ids);
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${companyName}_ids.csv`;
+          a.click();
+          URL.revokeObjectURL(url);
+          document.getElementById('adminSection').querySelector('h2').textContent = '従業員名入力';
+          document.getElementById('companyName').style.display = 'none';
+          document.getElementById('employeeCount').style.display = 'none';
+          document.getElementById('generateIds').style.display = 'none';
+          document.getElementById('idList').style.display = 'block';
+        } catch (error) {
+          console.error('ID生成エラー:', error);
+          alert('匿名IDの生成に失敗しました。もう一度お試しください。');
         }
-        companyCode = 'COMPANY_' + generateUUID().split('-')[0];
-        const ids = [];
-        for (let i = 1; i <= employeeCount; i++) {
-          const id = `ID_${companyCode}_${String(i).padStart(3, '0')}`;
-          ids.push({ 匿名ID: id });
-        }
-        const csv = Papa.unparse(ids);
-        await db.collection('companies').doc(companyCode).set({
-          companyName,
-          employeeCount,
-          ids,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${companyName}_ids.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-        document.getElementById('adminSection').querySelector('h2').textContent = '従業員名入力';
-        document.getElementById('companyName').style.display = 'none';
-        document.getElementById('employeeCount').style.display = 'none';
-        document.getElementById('generateIds').style.display = 'none';
-        document.getElementById('idList').style.display = 'block';
       }
 
       function generatePdf() {
-        const employeeNames = document.getElementById('employeeNames').value.trim().split(',').map(name => name.trim()).filter(name => name);
-        const company = document.getElementById('companyName').value.trim();
-        if (employeeNames.length === 0) {
-          alert('従業員名を入力してください。');
-          return;
-        }
-        db.collection('companies').doc(companyCode).get().then(doc => {
-          if (!doc.exists) {
+        try {
+          const employeeNames = document.getElementById('employeeNames').value.trim().split(',').map(name => name.trim()).filter(name => name);
+          const company = document.getElementById('companyName').value.trim();
+          if (employeeNames.length === 0) {
+            alert('従業員名を入力してください。');
+            return;
+          }
+          const ids = JSON.parse(localStorage.getItem(`ids_${companyCode}`)) || [];
+          if (ids.length === 0) {
             alert('匿名IDが見つかりません。先に匿名IDを生成してください。');
             return;
           }
-          const ids = doc.data().ids;
           if (employeeNames.length > ids.length) {
             alert('入力した従業員数が匿名IDの数を超えています。');
             return;
@@ -209,13 +195,13 @@
             doc.text(`${item.匿名ID}: ${item.従業員名}`, 10, 30 + index * 10);
           });
           doc.save(`${company}_matching.pdf`);
-        }).catch(error => {
-          console.error('Error:', error);
-          alert('エラーが発生しました。もう一度お試しください。');
-        });
+        } catch (error) {
+          console.error('PDF生成エラー:', error);
+          alert('PDF生成に失敗しました。もう一度お試しください。');
+        }
       }
 
-      document.getElementById('login-form').addEventListener('submit', async function(e) {
+      document.getElementById('login-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const anonymousIdInput = document.getElementById('anonymousId').value.trim();
         if (!anonymousIdInput || !anonymousIdInput.startsWith('ID_')) {
@@ -226,13 +212,13 @@
         companyCode = anonymousId.split('_')[1];
         const currentYear = new Date().getFullYear();
         const submissionKey = `stress_${companyCode}_${anonymousId}_${currentYear}`;
-        const existingSubmission = await db.collection('companies').doc(companyCode).collection('submissions').doc(submissionKey).get();
-        if (existingSubmission.exists) {
+        const existingSubmission = localStorage.getItem(submissionKey);
+        if (existingSubmission) {
           const confirmEdit = confirm(`この年度（${currentYear}年）にはすでに提出済みです。結果を修正しますか？`);
           if (!confirmEdit) {
             return;
           }
-          const savedAnswers = existingSubmission.data();
+          const savedAnswers = JSON.parse(existingSubmission);
           restoreFormData(savedAnswers);
         }
         document.getElementById('userSection').style.display = 'none';
@@ -341,7 +327,7 @@
         localStorage.setItem('autosave', JSON.stringify(answerData));
       });
 
-      document.getElementById('stressForm').addEventListener('submit', async function(e) {
+      document.getElementById('stressForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(stressForm);
         totalA = 0, totalB = 0, totalC = 0, totalD = 0;
@@ -369,13 +355,9 @@
         let guidance = "";
         let advice = "";
         if (highStressFlag) {
-          guidance = `<p>以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。</p>` +
-                     `<div class="interview-selection">` +
-                     `<p>産業医面談を希望しますか？</p>` +
-                     `<label><input type="radio" name="interview" value="希望する" required> 希望する</label>` +
-                     `<label><input type="radio" name="interview" value="希望しない" required> 希望しない</label>` +
-                     `<button class="submit-button" onclick="saveInterview()">保存</button>` +
-                     `</div>`;
+          guidance = `<p>以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。問診に進みますか？</p>` +
+                     `<button class="submit-button" onclick="triggerInterview()">問診に進む</button>` +
+                     `<button class="submit-button" onclick="skipInterview()">スキップ</button>`;
           advice = `<div class="advice-section">` +
                    `<h3>あなたへのアドバイス</h3>` +
                    `<ul>` +
@@ -384,7 +366,6 @@
                    `<li>職場での負担や人間関係について、上司や同僚とオープンに話す機会を検討してください。</li>` +
                    `</ul>` +
                    `</div>`;
-          triggerInterview();
         } else {
           advice = `<div class="advice-section">` +
                    `<h3>あなたへのアドバイス</h3>` +
@@ -427,24 +408,25 @@
           highStressReason,
           timestamp: new Date().toISOString()
         };
-        await db.collection('companies').doc(companyCode).collection('submissions').doc(`stress_${companyCode}_${anonymousId}_${data.year}`).set(data);
+        localStorage.setItem(`stress_${companyCode}_${anonymousId}_${data.year}`, JSON.stringify(data));
         localStorage.removeItem('autosave');
       });
 
-      function saveInterview() {
-        const interview = document.querySelector('input[name="interview"]:checked')?.value;
-        if (!interview) {
-          alert('面談の希望を選択してください。');
-          return;
-        }
+      function skipInterview() {
+        document.getElementById('checklist').style.display = 'block';
+        document.getElementById('interviewSection').style.display = 'none';
+        saveInterview('希望しない');
+      }
+
+      function saveInterview(value = '未選択') {
         const interviewData = {
           companyCode,
           anonymousId,
           year: parseInt(stressForm.dataset.year),
-          interview,
+          interview: value,
           timestamp: new Date().toISOString()
         };
-        db.collection('companies').doc(companyCode).collection('interviews').doc(`interview_${companyCode}_${anonymousId}_${interviewData.year}`).set(interviewData);
+        localStorage.setItem(`interview_${companyCode}_${anonymousId}_${interviewData.year}`, JSON.stringify(interviewData));
         alert('面談希望の選択を保存しました。');
       }
 
@@ -461,6 +443,7 @@
         document.getElementById('consentModal').style.display = 'none';
         document.getElementById('interviewSection').style.display = 'none';
         document.getElementById('checklist').style.display = 'block';
+        saveInterview('希望しない');
       }
 
       function showQuestion() {
@@ -477,7 +460,7 @@
         document.getElementById('interviewInput').value = '';
       }
 
-      async function submitAnswer() {
+      function submitAnswer() {
         const input = document.getElementById('interviewInput').value.trim();
         if (!input) {
           alert('回答を入力してください。');
@@ -494,26 +477,19 @@
         }
       }
 
-      async function shareSummary() {
-        try {
-          const summary = window.currentSummary;
-          const csv = Papa.unparse([{ 匿名ID: summary.id, 要因: summary.text }]);
-          await db.collection('companies').doc(companyCode).collection('summaries').add({
-            csv,
-            anonymousId: summary.id,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          document.getElementById('summaryConsentModal').style.display = 'none';
-          alert('ご回答を産業医に共有しました。ご協力ありがとうございました。');
-          resetInterview();
-        } catch (error) {
-          console.error('Error:', error);
-          alert('エラーが発生しました。もう一度お試しください。');
-        }
+      function shareSummary() {
+        const summary = window.currentSummary;
+        const csv = Papa.unparse([{ 匿名ID: summary.id, 要因: summary.text }]);
+        localStorage.setItem(`summary_${companyCode}_${anonymousId}_${stressForm.dataset.year}`, csv);
+        document.getElementById('summaryConsentModal').style.display = 'none';
+        alert('ご回答を産業医に共有しました。ご協力ありがとうございました。');
+        saveInterview('希望する');
+        resetInterview();
       }
 
       function cancelSummary() {
         document.getElementById('summaryConsentModal').style.display = 'none';
+        saveInterview('希望しない');
         resetInterview();
       }
 
@@ -530,132 +506,13 @@
         document.getElementById('consentModal').style.display = 'block';
       }
 
-      async function loadAdminData() {
-        const adminCompanyCode = document.getElementById('adminCompanyCode').value.trim();
-        if (!adminCompanyCode || !adminCompanyCode.startsWith('COMPANY_')) {
-          alert('正しい事業所コードを入力してください（例：COMPANY_abc123）。');
-          return;
-        }
-        const highStressOnly = document.getElementById('filterHighStress').dataset.active === 'true';
-        let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                   "<tr><th>匿名ID</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>面談希望</th><th>回答日時</th></tr>";
-        let dataList = [];
-        const submissions = await db.collection('companies').doc(adminCompanyCode).collection('submissions').get();
-        for (const doc of submissions.docs) {
-          const item = doc.data();
-          if (!highStressOnly || item.highStress) {
-            const interviewDoc = await db.collection('companies').doc(adminCompanyCode).collection('interviews')
-              .doc(`interview_${adminCompanyCode}_${item.anonymousId}_${item.year}`).get();
-            item.interview = interviewDoc.exists ? interviewDoc.data().interview : '未選択';
-            dataList.push(item);
+      function loadAdminData() {
+        try {
+          const adminCompanyCode = document.getElementById('adminCompanyCode').value.trim();
+          if (!adminCompanyCode || !adminCompanyCode.startsWith('COMPANY_')) {
+            alert('正しい事業所コードを入力してください（例：COMPANY_abc123）。');
+            return;
           }
-        }
-
-        dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
-
-        for (const item of dataList) {
-          const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
-          html += `<tr><td>${item.anonymousId}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.interview}</td><td>${item.timestamp}</td></tr>`;
-        }
-        html += "</table>";
-
-        document.getElementById('adminResults').innerHTML = html;
-
-        document.getElementById('exportCSV').onclick = async () => {
-          const rows = [["匿名ID", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "面談希望", "回答日時"]];
-          for (const item of dataList) {
-            const highStress = item.highStress ? 'はい' : 'いいえ';
-            rows.push([item.anonymousId, item.year, item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', item.interview, item.timestamp]);
-          }
-          const csv = rows.map(r => r.join(",")).join("\n");
-          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${adminCompanyCode}_stress_check.csv`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        };
-      }
-
-      document.getElementById('filterHighStress').addEventListener('click', () => {
-        const currentState = document.getElementById('filterHighStress').dataset.active === 'true';
-        document.getElementById('filterHighStress').dataset.active = !currentState;
-        document.getElementById('filterHighStress').textContent = !currentState ? '全データ表示' : '高ストレス者のみ表示';
-        loadAdminData();
-      });
-
-      document.getElementById('downloadPDF').addEventListener('click', () => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const company = stressForm.dataset.companyCode || '不明';
-        const id = stressForm.dataset.anonymousId || '不明';
-        const year = stressForm.dataset.year || '不明';
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
-        doc.text(`ストレスチェック結果 (事業所コード: ${company} - 匿名ID: ${id} - ${year}年度)`, 10, 10);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(12);
-        doc.text('あなたのスコア', 10, 20);
-        doc.autoTable({
-          startY: 25,
-          head: [['項目', 'スコア', '基準値']],
-          body: [
-            ['仕事（A項目）', `${totalA}点`, '高いほど仕事の負担が多い'],
-            ['心身の状態（B項目）', `${totalB}点`, '77点以上で高ストレス'],
-            ['人間関係（C項目）', `${totalC}点`, '低いほど支援が少ない'],
-            ['満足度（D項目）', `${totalD}点`, '低いほど不満が多い'],
-          ],
-          styles: { font: 'helvetica', fontSize: 10 },
-          headStyles: { fillColor: [200, 200, 200] },
-        });
-
-        let yPos = doc.lastAutoTable.finalY + 10;
-        if (highStressFlag) {
-          doc.setTextColor(255, 0, 0);
-          doc.setFont('helvetica', 'bold');
-          doc.text(`高ストレス判定：${highStressReason}`, 10, yPos);
-          yPos += 10;
-          doc.setTextColor(0);
-          doc.setFont('helvetica', 'normal');
-          doc.text('産業医との面談をおすすめします。', 10, yPos);
-          yPos += 10;
-        } else {
-          doc.text('現在のストレス状態は良好です。', 10, yPos);
-          yPos += 10;
-        }
-
-        doc.text('あなたへのアドバイス', 10, yPos);
-        yPos += 5;
-        const adviceText = highStressFlag
-          ? `- ストレスが高い状態です。産業医や専門家に相談しましょう。\n` +
-            `- 十分な休息やリラックスできる時間を確保してください。\n` +
-            `- 職場での負担や人間関係について、上司や同僚と話す機会を検討してください。`
-          : `- 現在のストレス状態は良好です。健康的な生活習慣を維持しましょう。\n` +
-            `- 定期的なストレスチェックで、変化に早めに気づくことが大切です。\n` +
-            `- 職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。`;
-        doc.text(adviceText, 10, yPos, { maxWidth: 190 });
-
-        yPos += 30;
-        doc.text('結果の解説', 10, yPos);
-        yPos += 5;
-        const explanationText = `- 仕事（A項目）：仕事の負担や裁量を評価。高いスコアは仕事のストレスが多いことを示します。\n` +
-                               `- 心身の状態（B項目）：心や体の健康状態。高いスコアはストレス症状が強いことを示します。\n` +
-                               `- 人間関係（C項目）：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。\n` +
-                               `- 満足度（D項目）：仕事や生活の満足度。低いスコアは不満が多いことを示します。`;
-        doc.text(explanationText, 10, yPos, { maxWidth: 190 });
-
-        doc.save(`${company}_${id}_${year}_stress_check.pdf`);
-      });
-    </script>
-    <script type="text/javascript">
-      var infolinks_pid = 3436126;
-      var infolinks_wsid = 0;
-    </script>
-    <script type="text/javascript" src="//resources.infolinks.com/js/infolinks_main.js"></script>
-  </body>
-  </html>
+          const highStressOnly = document.getElementById('filterHighStress').dataset.active === 'true';
+          let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                     "<tr><th>匿名ID</th><th>年度</th><th>A合計</th><th
