@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ストレスチェックのマスターログイン。全会社の回答データを表示。">
+  <meta name="keywords" content="ストレスチェック, メンタルヘルス, 職場ストレス">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://resources.infolinks.com; frame-src 'self' https://*.infolinks.com;">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>ストレスチェック - マスターログイン</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/stresscheck/styles.css?v=20250514">
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>ストレスチェック</h1>
+    <nav>
+      <a href="/stresscheck/index.html">ホーム</a>
+      <a href="/stresscheck/admin.html">管理画面</a>
+      <a href="/stresscheck/howto.html">使い方</a>
+      <a href="/stresscheck/about.html">このサイトについて</a>
+      <a href="/stresscheck/faq.html">FAQ</a>
+      <a href="/stresscheck/contact.html">お問い合わせ</a>
+      <a href="/stresscheck/tips.html">ストレス管理のヒント</a>
+      <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="adminMaster" style="display:block !important; visibility:visible !important;">
+      <h2>マスターログイン</h2>
+      <p>全会社の回答データを表示します。</p>
+      <button id="filterHighStressMaster" class="filter-button">高ストレス者のみ表示</button>
+      <div class="table-wrapper">
+        <div id="masterResults"></div>
+      </div>
+      <button id="exportAllCSV" class="submit-button">すべてCSVダウンロード</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 ストレスチェックシステム | 運営：ストレスチェックチーム</p>
+    <p>
+      <a href="/stresscheck/index.html">ホーム</a> |
+      <a href="/stresscheck/admin.html">管理画面</a> |
+      <a href="/stresscheck/howto.html">使い方</a> |
+      <a href="/stresscheck/about.html">このサイトについて</a> |
+      <a href="/stresscheck/faq.html">FAQ</a> |
+      <a href="/stresscheck/contact.html">お問い合わせ</a> |
+      <a href="/stresscheck/tips.html">ストレス管理のヒント</a> |
+      <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
+    </p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('ページロード開始: adminMaster.html');
+      const masterResults = document.getElementById('masterResults');
+
+      function loadAllData(highStressOnly = false) {
+        console.log(`全データ読み込み, 高ストレスのみ: ${highStressOnly}`);
+        let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                   "<tr><th>会社コード</th><th>匿名ID</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
+        let dataList = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith("stress_")) {
+            const item = JSON.parse(localStorage.getItem(key));
+            if (!highStressOnly || item.highStress) {
+              dataList.push(item);
+            }
+          }
+        }
+
+        dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
+
+        const rows = [["会社コード", "匿名ID", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
+        for (const item of dataList) {
+          const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+          html += `<tr><td>${item.companyCode}</td><td>${item.anonymousId}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
+          rows.push([item.companyCode, item.anonymousId, item.year, item.totalA, item.totalB, item.totalC, item.totalD, highStress.replace(/<[^>]+>/g, ''), item.highStressReason || '', item.timestamp]);
+        }
+        html += "</table>";
+
+        html += "<h3>年度ごとの比較</h3>";
+        const users = [...new Set(dataList.map(item => item.anonymousId))];
+        for (const user of users) {
+          const userData = dataList.filter(item => item.anonymousId === user).sort((a, b) => a.year - b.year);
+          if (userData.length > 1) {
+            html += `<h4>${user}</h4>`;
+            html += "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                    "<tr><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th></tr>";
+            for (const item of userData) {
+              const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+              html += `<tr><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td></tr>`;
+            }
+            html += "</table>";
+          }
+        }
+
+        masterResults.innerHTML = html;
+
+        document.getElementById('exportAllCSV').onclick = () => {
+          console.log('全データCSVダウンロード');
+          const csv = rows.map(r => r.join(",")).join("\n");
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `全会社_ストレスチェック結果.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        };
+        console.log('全データロード完了');
+      }
+
+      document.getElementById('filterHighStressMaster').addEventListener('click', () => {
+        console.log('高ストレスフィルタ（マスター）');
+        loadAllData(true);
+      });
+
+      // 初期データロード
+      loadAllData();
+    });
+  </script>
+</body>
+</html>
