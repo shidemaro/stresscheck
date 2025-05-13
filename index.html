@@ -1,105 +1,105 @@
 <!DOCTYPE html>
 <html lang="ja">
-
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="ストレスチェックで仕事や生活のストレスを評価。簡単な質問でメンタルヘルスをサポート。">
   <meta name="keywords" content="ストレスチェック, メンタルヘルス, 職場ストレス">
-  ストレスチェック
+  <title>ストレスチェック</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/stresscheck/styles.css">
+</head>
+<body>
+  <header>
+    <h1>ストレスチェック</h1>
+    <nav>
+      <a href="/stresscheck/index.html">ホーム</a>
+      <a href="/stresscheck/howto.html">使い方</a>
+      <a href="/stresscheck/about.html">このサイトについて</a>
+      <a href="/stresscheck/faq.html">FAQ</a>
+      <a href="/stresscheck/contact.html">お問い合わせ</a>
+      <a href="/stresscheck/tips.html">ストレス管理のヒント</a>
+      <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
+    </nav>
+  </header>
 
-
-  
-    ストレスチェック
-    
-      <a href="/stresscheck/index.html">ホーム
-      <a href="/stresscheck/howto.html">使い方
-      <a href="/stresscheck/about.html">このサイトについて
-      <a href="/stresscheck/faq.html">FAQ
-      <a href="/stresscheck/contact.html">お問い合わせ
-      <a href="/stresscheck/tips.html">ストレス管理のヒント
-      <a href="/stresscheck/privacy.html">プライバシーポリシー
-    
-  
-
-  
+  <main>
     <section id="intro">
-      ストレスチェックを始めよう
-      簡単な質問で、仕事や生活のストレスを評価できます。年度ごとに1回のみ提出可能です。
-      <div class="notice">注意：ストレスチェックは1年1度の提出です。提出済みの場合は修正が可能です。パスワードを他人と共有しないでください。
+      <h2>ストレスチェックを始めよう</h2>
+      <p>簡単な質問で、仕事や生活のストレスを評価できます。年度ごとに1回のみ提出可能です。</p>
+      <div class="notice">注意：ストレスチェックは1年1度の提出です。提出済みの場合は修正が可能です。パスワードを他人と共有しないでください。</div>
       <form id="login-form">
         <input type="text" id="company" placeholder="会社名" required aria-label="会社名">
         <input type="password" id="password" placeholder="パスワード" required aria-label="パスワード">
         <input type="text" id="username" placeholder="氏名（個人用のみ）" aria-label="氏名">
-        <input type="checkbox" id="adminCheck"> 管理者ログイン
-        <button type="submit" class="submit-button">ログイン
-      
-    
+        <label><input type="checkbox" id="adminCheck"> 管理者ログイン</label><br>
+        <button type="submit" class="submit-button">ログイン</button>
+      </form>
+    </section>
 
     <section id="checklist" style="display:none;">
-      ストレスチェック
-      <div class="notice">注意：提出は1年1度までです。修正は可能です。パスワードを他人と共有しないでください。
+      <h2>ストレスチェック</h2>
+      <div class="notice">注意：提出は1年1度までです。修正は可能です。パスワードを他人と共有しないでください。</div>
       <form id="stressForm">
-        A. 仕事について
-        <div id="sectionA">
-        B. 最近の状態
-        <div id="sectionB">
-        C. 周囲との関係
-        <div id="sectionC">
-        D. 満足度について
-        <div id="sectionD">
-        <button type="submit" class="submit-button">送信
-      
-      <div id="result" class="results">
-      <button id="downloadPDF" class="submit-button">PDFとして保存
-    
+        <h3>A. 仕事について</h3>
+        <div id="sectionA"></div>
+        <h3>B. 最近の状態</h3>
+        <div id="sectionB"></div>
+        <h3>C. 周囲との関係</h3>
+        <div id="sectionC"></div>
+        <h3>D. 満足度について</h3>
+        <div id="sectionD"></div>
+        <button type="submit" class="submit-button">送信</button>
+      </form>
+      <div id="result" class="results"></div>
+      <button id="downloadPDF" class="submit-button">PDFとして保存</button>
+    </section>
 
     <section id="adminPanel" style="display:none;">
-      管理画面
-      <button id="filterHighStress" class="filter-button">高ストレス者のみ表示
+      <h2>管理画面</h2>
+      <button id="filterHighStress" class="filter-button">高ストレス者のみ表示</button>
       <div class="table-wrapper">
-        <div id="adminResults">
-      
-      <button id="exportCSV" class="submit-button">CSVダウンロード
-    
+        <div id="adminResults"></div>
+      </div>
+      <button id="exportCSV" class="submit-button">CSVダウンロード</button>
+    </section>
 
     <section id="adminMaster" style="display:none;">
-      マスターログイン
-      全会社の回答データを表示します。
-      <button id="filterHighStressMaster" class="filter-button">高ストレス者のみ表示
+      <h2>マスターログイン</h2>
+      <p>全会社の回答データを表示します。</p>
+      <button id="filterHighStressMaster" class="filter-button">高ストレス者のみ表示</button>
       <div class="table-wrapper">
-        <div id="masterResults">
-      
-      <button id="exportAllCSV" class="submit-button">すべてCSVダウンロード
-    
+        <div id="masterResults"></div>
+      </div>
+      <button id="exportAllCSV" class="submit-button">すべてCSVダウンロード</button>
+    </section>
 
     <section id="masterPasswordPanel" style="display:none;">
       <!-- INFOLINKS_OFF -->
-      管理者パスワード一覧
-      全会社の管理者パスワードと関連する個人名を表示します。
+      <h2>管理者パスワード一覧</h2>
+      <p>全会社の管理者パスワードと関連する個人名を表示します。</p>
       <div class="table-wrapper">
-        <div id="masterPasswordResults">
-      
+        <div id="masterPasswordResults"></div>
+      </div>
       <!-- INFOLINKS_ON -->
-    
-  
+    </section>
+  </main>
 
-  
-    © 2025 ストレスチェックシステム | 運営：ストレスチェックチーム
-    
-      <a href="/stresscheck/index.html">ホーム |
-      <a href="/stresscheck/howto.html">使い方 |
-      <a href="/stresscheck/about.html">このサイトについて |
-      <a href="/stresscheck/faq.html">FAQ |
-      <a href="/stresscheck/contact.html">お問い合わせ |
-      <a href="/stresscheck/tips.html">ストレス管理のヒント |
-      <a href="/stresscheck/privacy.html">プライバシーポリシー
-    
-  
+  <footer>
+    <p>© 2025 ストレスチェックシステム | 運営：ストレスチェックチーム</p>
+    <p>
+      <a href="/stresscheck/index.html">ホーム</a> |
+      <a href="/stresscheck/howto.html">使い方</a> |
+      <a href="/stresscheck/about.html">このサイトについて</a> |
+      <a href="/stresscheck/faq.html">FAQ</a> |
+      <a href="/stresscheck/contact.html">お問い合わせ</a> |
+      <a href="/stresscheck/tips.html">ストレス管理のヒント</a> |
+      <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
+    </p>
+  </footer>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
-  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
     // パスワードハッシュ化関数
     async function hashPassword(password) {
       const msgBuffer = new TextEncoder().encode(password);
@@ -214,17 +214,17 @@
           const div = document.createElement('div');
           div.className = 'question';
           const qNum = idx + 1;
-          div.innerHTML = `${q}<div class="options">` + 
+          div.innerHTML = `<p>${q}</p><div class="options">` + 
             labels.map((label, i) => 
-              `<input type="radio" name="${prefix}${qNum}" value="${i+1}" required>${label}`
-            ).join('') + ``;
+              `<label><input type="radio" name="${prefix}${qNum}" value="${i+1}" required>${label}</label>`
+            ).join('') + `</div>`;
           section.appendChild(div);
         });
       }
 
       function loadPasswordData() {
         let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                   "会社名管理者パスワード（ハッシュ）個人名";
+                   "<tr><th>会社名</th><th>管理者パスワード（ハッシュ）</th><th>個人名</th></tr>";
         let companies = new Set();
         let companyData = {};
 
@@ -250,9 +250,9 @@
         for (const company of companies) {
           const password = companyData[company].password || '未設定';
           const users = Array.from(companyData[company].users).join(', ') || 'なし';
-          html += `${company}${password}${users}`;
+          html += `<tr><td>${company}</td><td>${password}</td><td>${users}</td></tr>`;
         }
-        html += "";
+        html += "</table>";
 
         masterPasswordResults.innerHTML = html;
       }
@@ -292,58 +292,58 @@
         let highStressReason = "";
         if (totalB >= 77) {
           highStressReason = "最近の心身の状態（B項目）の合計が77点以上で、ストレスが高い状態です。";
-          evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}`;
+          evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
           highStressFlag = true;
         } else if ((totalA + totalC) >= 76 && totalB >= 63) {
           highStressReason = "仕事や人間関係（A+C項目）の合計が76点以上、かつ心身の状態（B項目）が63点以上で、ストレスが高い状態です。";
-          evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}`;
+          evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
           highStressFlag = true;
         }
 
         let guidance = "";
         let advice = "";
         if (highStressFlag) {
-          guidance = `以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。` +
+          guidance = `<p>以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。</p>` +
                      `<div class="interview-selection">` +
-                     `産業医面談を希望しますか？` +
-                     `<input type="radio" name="interview" value="希望する" required> 希望する` +
-                     `<input type="radio" name="interview" value="希望しない" required> 希望しない` +
-                     `<button class="submit-button" onclick="saveInterview()">保存` +
-                     ``;
+                     `<p>産業医面談を希望しますか？</p>` +
+                     `<label><input type="radio" name="interview" value="希望する" required> 希望する</label>` +
+                     `<label><input type="radio" name="interview" value="希望しない" required> 希望しない</label>` +
+                     `<button class="submit-button" onclick="saveInterview()">保存</button>` +
+                     `</div>`;
           advice = `<div class="advice-section">` +
-                   `あなたへのアドバイス` +
-                   `` +
-                   `ストレスが高い状態です。産業医や専門家に相談することで、具体的な改善策が見つかります。` +
-                   `十分な休息やリラックスできる時間を意識的に確保しましょう。` +
-                   `職場での負担や人間関係について、上司や同僚とオープンに話す機会を検討してください。` +
-                   `` +
-                   ``;
+                   `<h3>あなたへのアドバイス</h3>` +
+                   `<ul>` +
+                   `<li>ストレスが高い状態です。産業医や専門家に相談することで、具体的な改善策が見つかります。</li>` +
+                   `<li>十分な休息やリラックスできる時間を意識的に確保しましょう。</li>` +
+                   `<li>職場での負担や人間関係について、上司や同僚とオープンに話す機会を検討してください。</li>` +
+                   `</ul>` +
+                   `</div>`;
         } else {
           advice = `<div class="advice-section">` +
-                   `あなたへのアドバイス` +
-                   `` +
-                   `現在のストレス状態は良好です。引き続き健康的な生活習慣を維持しましょう。` +
-                   `定期的なストレスチェックで、変化に早めに気づくことが大切です。` +
-                   `職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。` +
-                   `` +
-                   ``;
+                   `<h3>あなたへのアドバイス</h3>` +
+                   `<ul>` +
+                   `<li>現在のストレス状態は良好です。引き続き健康的な生活習慣を維持しましょう。</li>` +
+                   `<li>定期的なストレスチェックで、変化に早めに気づくことが大切です。</li>` +
+                   `<li>職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。</li>` +
+                   `</ul>` +
+                   `</div>`;
         }
 
-        const scoreTable = `` +
-                           `項目あなたのスコア基準値` +
-                           `仕事（A項目）${totalA}点高いほど仕事の負担が多い` +
-                           `心身の状態（B項目）${totalB}点77点以上で高ストレス` +
-                           `人間関係（C項目）${totalC}点低いほど支援が少ない` +
-                           `満足度（D項目）${totalD}点低いほど不満が多い` +
-                           ``;
+        const scoreTable = `<table>` +
+                           `<tr><th>項目</th><th>あなたのスコア</th><th>基準値</th></tr>` +
+                           `<tr><td>仕事（A項目）</td><td>${totalA}点</td><td>高いほど仕事の負担が多い</td></tr>` +
+                           `<tr><td>心身の状態（B項目）</td><td>${totalB}点</td><td>77点以上で高ストレス</td></tr>` +
+                           `<tr><td>人間関係（C項目）</td><td>${totalC}点</td><td>低いほど支援が少ない</td></tr>` +
+                           `<tr><td>満足度（D項目）</td><td>${totalD}点</td><td>低いほど不満が多い</td></tr>` +
+                           `</table>`;
 
-        const explanation = `結果の解説` +
-                            `` +
-                            `仕事（A項目）：仕事の負担や裁量を評価。高いスコアは仕事のストレスが多いことを示します。` +
-                            `心身の状態（B項目）：心や体の健康状態。高いスコアはストレス症状が強いことを示します。` +
-                            `人間関係（C項目）：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。` +
-                            `満足度（D項目）：仕事や生活の満足度。低いスコアは不満が多いことを示します。` +
-                            ``;
+        const explanation = `<h3>結果の解説</h3>` +
+                            `<ul>` +
+                            `<li><strong>仕事（A項目）</strong>：仕事の負担や裁量を評価。高いスコアは仕事のストレスが多いことを示します。</li>` +
+                            `<li><strong>心身の状態（B項目）</strong>：心や体の健康状態。高いスコアはストレス症状が強いことを示します。</li>` +
+                            `<li><strong>人間関係（C項目）</strong>：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。</li>` +
+                            `<li><strong>満足度（D項目）</strong>：仕事や生活の満足度。低いスコアは不満が多いことを示します。</li>` +
+                            `</ul>`;
 
         resultDiv.innerHTML = `${evaluation}${scoreTable}${guidance}${explanation}${advice}`;
 
@@ -583,7 +583,7 @@
       function loadAdminData(company, highStressOnly = false) {
         console.log(`管理者データ読み込み: ${company}, 高ストレスのみ: ${highStressOnly}`);
         let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                   "氏名年度A合計B合計C合計D合計高ストレス高ストレス理由回答日時";
+                   "<tr><th>氏名</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
         let dataList = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
@@ -598,24 +598,24 @@
         dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
 
         for (const item of dataList) {
-          const highStress = item.highStress ? '<span class="high-stress">はい' : 'いいえ';
-          html += `${item.name || ""}${item.year}${item.totalA}${item.totalB}${item.totalC}${item.totalD}${highStress}${item.highStressReason || ''}${item.timestamp}`;
+          const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+          html += `<tr><td>${item.name || ""}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
         }
-        html += "";
+        html += "</table>";
 
-        html += "年度ごとの比較";
+        html += "<h3>年度ごとの比較</h3>";
         const users = [...new Set(dataList.map(item => item.name))];
         for (const user of users) {
           const userData = dataList.filter(item => item.name === user).sort((a, b) => a.year - b.year);
           if (userData.length > 1) {
-            html += `${user}`;
+            html += `<h4>${user}</h4>`;
             html += "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                    "年度A合計B合計C合計D合計高ストレス";
+                    "<tr><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th></tr>";
             for (const item of userData) {
-              const highStress = item.highStress ? '<span class="high-stress">はい' : 'いいえ';
-              html += `${item.year}${item.totalA}${item.totalB}${item.totalC}${item.totalD}${highStress}`;
+              const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+              html += `<tr><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td></tr>`;
             }
-            html += "";
+            html += "</table>";
           }
         }
 
@@ -625,7 +625,7 @@
       function loadAllData(highStressOnly = false) {
         console.log(`全データ読み込み, 高ストレスのみ: ${highStressOnly}`);
         let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                   "会社名氏名年度A合計B合計C合計D合計高ストレス高ストレス理由回答日時";
+                   "<tr><th>会社名</th><th>氏名</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
         let dataList = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
@@ -641,25 +641,25 @@
 
         const rows = [["会社名", "氏名", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
         for (const item of dataList) {
-          const highStress = item.highStress ? '<span class="high-stress">はい' : 'いいえ';
-          html += `${item.company}${item.name}${item.year}${item.totalA}${item.totalB}${item.totalC}${item.totalD}${highStress}${item.highStressReason || ''}${item.timestamp}`;
+          const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+          html += `<tr><td>${item.company}</td><td>${item.name}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
           rows.push([item.company, item.name, item.year, item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', item.timestamp]);
         }
-        html += "";
+        html += "</table>";
 
-        html += "年度ごとの比較";
+        html += "<h3>年度ごとの比較</h3>";
         const users = [...new Set(dataList.map(item => item.name))];
         for (const user of users) {
           const userData = dataList.filter(item => item.name === user).sort((a, b) => a.year - b.year);
           if (userData.length > 1) {
-            html += `${user}`;
+            html += `<h4>${user}</h4>`;
             html += "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                    "年度A合計B合計C合計D合計高ストレス";
+                    "<tr><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th></tr>";
             for (const item of userData) {
-              const highStress = item.highStress ? '<span class="high-stress">はい' : 'いいえ';
-              html += `${item.year}${item.totalA}${item.totalB}${item.totalC}${item.totalD}${highStress}`;
+              const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+              html += `<tr><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td></tr>`;
             }
-            html += "";
+            html += "</table>";
           }
         }
 
@@ -691,10 +691,12 @@
         loadAllData(true);
       });
     });
-  
+  </script>
   <!-- Infolinksスクリプト -->
   <script type="text/javascript">
     var infolinks_pid = 3436126;
     var infolinks_wsid = 0;
-  
-  <script type="text/javascript" src="//resources.infolinks.com/js/infolinks_main.js">
+  </script>
+  <script type="text/javascript" src="//resources.infolinks.com/js/infolinks_main.js"></script>
+</body>
+</html>
