@@ -5,31 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="ストレスチェックで仕事や生活のストレスを評価。簡単な質問でメンタルヘルスをサポート。">
   <meta name="keywords" content="ストレスチェック, メンタルヘルス, 職場ストレス">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://resources.infolinks.com; frame-src 'self' https://*.infolinks.com;">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <title>ストレスチェック</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/stresscheck/styles.css?v=20250514">
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Infolinksスクリプト -->
-  <script type="text/javascript">
-    var infolinks_pid = 3436126;
-    var infolinks_wsid = 0;
-  </script>
-  <script type="text/javascript" src="//resources.infolinks.com/js/infolinks_main.js"></script>
-  <style>
-    #userSection { display: block !important; visibility: visible !important; }
-  </style>
+  <link rel="stylesheet" href="/stresscheck/styles.css">
 </head>
 <body>
   <header>
     <h1>ストレスチェック</h1>
     <nav>
       <a href="/stresscheck/index.html">ホーム</a>
-      <a href="/stresscheck/admin.html">管理画面</a>
       <a href="/stresscheck/howto.html">使い方</a>
       <a href="/stresscheck/about.html">このサイトについて</a>
       <a href="/stresscheck/faq.html">FAQ</a>
@@ -40,14 +24,64 @@
   </header>
 
   <main>
-    <section id="userSection" style="display:block !important; visibility:visible !important;">
+    <section id="intro">
       <h2>ストレスチェックを始めよう</h2>
       <p>簡単な質問で、仕事や生活のストレスを評価できます。年度ごとに1回のみ提出可能です。</p>
-      <div class="notice">注意：ストレスチェックは1年1度の提出です。提出済みの場合は修正が可能です。匿名IDを他人と共有しないでください。</div>
+      <div class="notice">注意：ストレスチェックは1年1度の提出です。提出済みの場合は修正が可能です。パスワードを他人と共有しないでください。</div>
       <form id="login-form">
-        <input type="text" id="anonymousId" placeholder="匿名ID（例：ABC_001）" required aria-label="匿名ID">
-        <button type="submit" class="submit-button">開始</button>
+        <input type="text" id="company" placeholder="会社名" required aria-label="会社名">
+        <input type="password" id="password" placeholder="パスワード" required aria-label="パスワード">
+        <input type="text" id="username" placeholder="氏名（個人用のみ）" aria-label="氏名">
+        <label><input type="checkbox" id="adminCheck"> 管理者ログイン</label><br>
+        <button type="submit" class="submit-button">ログイン</button>
       </form>
+    </section>
+
+    <section id="checklist" style="display:none;">
+      <h2>ストレスチェック</h2>
+      <div class="notice">注意：提出は1年1度までです。修正は可能です。パスワードを他人と共有しないでください。</div>
+      <form id="stressForm">
+        <h3>A. 仕事について</h3>
+        <div id="sectionA"></div>
+        <h3>B. 最近の状態</h3>
+        <div id="sectionB"></div>
+        <h3>C. 周囲との関係</h3>
+        <div id="sectionC"></div>
+        <h3>D. 満足度について</h3>
+        <div id="sectionD"></div>
+        <button type="submit" class="submit-button">送信</button>
+      </form>
+      <div id="result" class="results"></div>
+      <button id="downloadPDF" class="submit-button">PDFとして保存</button>
+    </section>
+
+    <section id="adminPanel" style="display:none;">
+      <h2>管理画面</h2>
+      <button id="filterHighStress" class="filter-button">高ストレス者のみ表示</button>
+      <div class="table-wrapper">
+        <div id="adminResults"></div>
+      </div>
+      <button id="exportCSV" class="submit-button">CSVダウンロード</button>
+    </section>
+
+    <section id="adminMaster" style="display:none;">
+      <h2>マスターログイン</h2>
+      <p>全会社の回答データを表示します。</p>
+      <button id="filterHighStressMaster" class="filter-button">高ストレス者のみ表示</button>
+      <div class="table-wrapper">
+        <div id="masterResults"></div>
+      </div>
+      <button id="exportAllCSV" class="submit-button">すべてCSVダウンロード</button>
+    </section>
+
+    <section id="masterPasswordPanel" style="display:none;">
+      <!-- INFOLINKS_OFF -->
+      <h2>管理者パスワード一覧</h2>
+      <p>全会社の管理者パスワードと関連する個人名を表示します。</p>
+      <div class="table-wrapper">
+        <div id="masterPasswordResults"></div>
+      </div>
+      <!-- INFOLINKS_ON -->
     </section>
   </main>
 
@@ -55,7 +89,6 @@
     <p>© 2025 ストレスチェックシステム | 運営：ストレスチェックチーム</p>
     <p>
       <a href="/stresscheck/index.html">ホーム</a> |
-      <a href="/stresscheck/admin.html">管理画面</a> |
       <a href="/stresscheck/howto.html">使い方</a> |
       <a href="/stresscheck/about.html">このサイトについて</a> |
       <a href="/stresscheck/faq.html">FAQ</a> |
@@ -65,6 +98,7 @@
     </p>
   </footer>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     // パスワードハッシュ化関数
     async function hashPassword(password) {
@@ -74,53 +108,366 @@
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('ページロード開始: index.html');
-      const loginForm = document.getElementById('login-form');
-      const userSection = document.getElementById('userSection');
+    // 産業医面談の選択を保存
+    function saveInterview() {
+      const interview = document.querySelector('input[name="interview"]:checked')?.value;
+      if (!interview) {
+        alert('面談の希望を選択してください。');
+        return;
+      }
+      const company = stressForm.dataset.company;
+      const username = stressForm.dataset.username;
+      const year = stressForm.dataset.year;
+      const interviewData = {
+        company,
+        username,
+        year: parseInt(year),
+        interview,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem(`interview_${company}_${username}_${year}`, JSON.stringify(interviewData));
+      alert('面談希望の選択を保存しました。');
+    }
 
-      // ホーム画面確認
-      userSection.style.display = 'block';
-      userSection.style.visibility = 'visible';
-      console.log('userSection表示: display=block, visibility=visible');
+    document.addEventListener('DOMContentLoaded', () => {
+      const loginForm = document.getElementById('login-form');
+      const checklist = document.getElementById('checklist');
+      const adminPanel = document.getElementById('adminPanel');
+      const adminMaster = document.getElementById('adminMaster');
+      const masterPasswordPanel = document.getElementById('masterPasswordPanel');
+      const stressForm = document.getElementById('stressForm');
+      const resultDiv = document.getElementById('result');
+      const sectionA = document.getElementById('sectionA');
+      const sectionB = document.getElementById('sectionB');
+      const sectionC = document.getElementById('sectionC');
+      const sectionD = document.getElementById('sectionD');
+      const adminResults = document.getElementById('adminResults');
+      const masterResults = document.getElementById('masterResults');
+      const masterPasswordResults = document.getElementById('masterPasswordResults');
+
+      const A_questions = [
+        "非常にたくさんの仕事をしなければならない",
+        "時間内に仕事が処理しきれない",
+        "一生懸命働かなければならない",
+        "かなり注意を集中する必要がある",
+        "高度の知識や技術が必要なむずかしい仕事だ",
+        "勤務時間中はいつも仕事のことを考えていなければならない",
+        "からだを大変よく使う仕事だ",
+        "自分のペースで仕事ができる",
+        "自分で仕事の順番・やり方を決めることができる",
+        "職場の仕事の方針に自分の意見を反映できる",
+        "自分の技能や知識を仕事で使うことが少ない",
+        "私の部署内で意見のくい違いがある",
+        "私の部署と他の部署とはうまが合わない",
+        "私の職場の雰囲気は友好的である",
+        "私の職場の作業環境（騒音、照明、温度、換気など）はよくない",
+        "仕事の内容は自分にあっている",
+        "働きがいのある仕事だ"
+      ];
+      const B_questions = [
+        "活気がわいてくる",
+        "元気がいっぱいだ",
+        "生き生きする",
+        "怒りを感じる",
+        "内心腹立たしい",
+        "イライラしている",
+        "ひどく疲れた",
+        "へとへとだ",
+        "だるい",
+        "気がはりつめている",
+        "不安だ",
+        "落着かない",
+        "ゆううつだ",
+        "何をするのも面倒だ",
+        "物事に集中できない",
+        "気分が晴れない",
+        "仕事が手につかない",
+        "悲しいと感じる",
+        "めまいがする",
+        "体のふしぶしが痛む",
+        "頭が重かったり頭痛がする",
+        "首筋や肩がこる",
+        "腰が痛い",
+        "目が疲れる",
+        "動悸や息切れがする",
+        "胃腸の具合が悪い",
+        "食欲がない",
+        "便秘や下痢をする",
+        "よく眠れない"
+      ];
+      const C_questions = [
+        "上司（気軽に話ができますか）",
+        "職場の同僚（気軽に話ができますか）",
+        "配偶者、家族、友人等（気軽に話ができますか）",
+        "上司（困った時に頼りになりますか）",
+        "職場の同僚（困った時に頼りになりますか）",
+        "配偶者、家族、友人等（困った時に頼りになりますか）",
+        "上司（個人的な問題を相談したらきいてくれますか）",
+        "職場の同僚（個人的な問題を相談したらきいてくれますか）",
+        "配偶者、家族、友人等（個人的な問題を相談したらきいてくれますか）"
+      ];
+      const D_questions = ["仕事に満足だ", "家庭生活に満足だ"];
+
+      function renderQuestions(section, questions, prefix, labels) {
+        section.innerHTML = '';
+        questions.forEach((q, idx) => {
+          const div = document.createElement('div');
+          div.className = 'question';
+          const qNum = idx + 1;
+          div.innerHTML = `<p>${q}</p><div class="options">` + 
+            labels.map((label, i) => 
+              `<label><input type="radio" name="${prefix}${qNum}" value="${i+1}" required>${label}</label>`
+            ).join('') + `</div>`;
+          section.appendChild(div);
+        });
+      }
+
+      function loadPasswordData() {
+        let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                   "<tr><th>会社名</th><th>管理者パスワード（ハッシュ）</th><th>個人名</th></tr>";
+        let companies = new Set();
+        let companyData = {};
+
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith('adminpass_')) {
+            const company = key.replace('adminpass_', '');
+            companies.add(company);
+            companyData[company] = { password: localStorage.getItem(key), users: new Set() };
+          }
+        }
+
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith('stress_')) {
+            const item = JSON.parse(localStorage.getItem(key));
+            if (item.company && companyData[item.company]) {
+              companyData[item.company].users.add(item.name);
+            }
+          }
+        }
+
+        for (const company of companies) {
+          const password = companyData[company].password || '未設定';
+          const users = Array.from(companyData[company].users).join(', ') || 'なし';
+          html += `<tr><td>${company}</td><td>${password}</td><td>${users}</td></tr>`;
+        }
+        html += "</table>";
+
+        masterPasswordResults.innerHTML = html;
+      }
+
+      function restoreFormData(data) {
+        Object.keys(data).forEach(key => {
+          const radio = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
+          if (radio) radio.checked = true;
+        });
+      }
+
+      stressForm.addEventListener('change', () => {
+        console.log('ストレスフォーム変更検知');
+        const formData = new FormData(stressForm);
+        const answerData = {};
+        for (let [key, value] of formData.entries()) {
+          answerData[key] = value;
+        }
+        localStorage.setItem('autosave', JSON.stringify(answerData));
+      });
+
+      stressForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        console.log('ストレスフォーム送信');
+        const formData = new FormData(stressForm);
+        let totalA = 0, totalB = 0, totalC = 0, totalD = 0;
+        for (let [key, value] of formData.entries()) {
+          const score = parseInt(value);
+          const section = key.charAt(0);
+          if (section === 'A') totalA += score;
+          else if (section === 'B') totalB += score;
+          else if (section === 'C') totalC += score;
+          else if (section === 'D') totalD += score;
+        }
+        let evaluation = "";
+        let highStressFlag = false;
+        let highStressReason = "";
+        if (totalB >= 77) {
+          highStressReason = "最近の心身の状態（B項目）の合計が77点以上で、ストレスが高い状態です。";
+          evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
+          highStressFlag = true;
+        } else if ((totalA + totalC) >= 76 && totalB >= 63) {
+          highStressReason = "仕事や人間関係（A+C項目）の合計が76点以上、かつ心身の状態（B項目）が63点以上で、ストレスが高い状態です。";
+          evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
+          highStressFlag = true;
+        }
+
+        let guidance = "";
+        let advice = "";
+        if (highStressFlag) {
+          guidance = `<p>以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。</p>` +
+                     `<div class="interview-selection">` +
+                     `<p>産業医面談を希望しますか？</p>` +
+                     `<label><input type="radio" name="interview" value="希望する" required> 希望する</label>` +
+                     `<label><input type="radio" name="interview" value="希望しない" required> 希望しない</label>` +
+                     `<button class="submit-button" onclick="saveInterview()">保存</button>` +
+                     `</div>`;
+          advice = `<div class="advice-section">` +
+                   `<h3>あなたへのアドバイス</h3>` +
+                   `<ul>` +
+                   `<li>ストレスが高い状態です。産業医や専門家に相談することで、具体的な改善策が見つかります。</li>` +
+                   `<li>十分な休息やリラックスできる時間を意識的に確保しましょう。</li>` +
+                   `<li>職場での負担や人間関係について、上司や同僚とオープンに話す機会を検討してください。</li>` +
+                   `</ul>` +
+                   `</div>`;
+        } else {
+          advice = `<div class="advice-section">` +
+                   `<h3>あなたへのアドバイス</h3>` +
+                   `<ul>` +
+                   `<li>現在のストレス状態は良好です。引き続き健康的な生活習慣を維持しましょう。</li>` +
+                   `<li>定期的なストレスチェックで、変化に早めに気づくことが大切です。</li>` +
+                   `<li>職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。</li>` +
+                   `</ul>` +
+                   `</div>`;
+        }
+
+        const scoreTable = `<table>` +
+                           `<tr><th>項目</th><th>あなたのスコア</th><th>基準値</th></tr>` +
+                           `<tr><td>仕事（A項目）</td><td>${totalA}点</td><td>高いほど仕事の負担が多い</td></tr>` +
+                           `<tr><td>心身の状態（B項目）</td><td>${totalB}点</td><td>77点以上で高ストレス</td></tr>` +
+                           `<tr><td>人間関係（C項目）</td><td>${totalC}点</td><td>低いほど支援が少ない</td></tr>` +
+                           `<tr><td>満足度（D項目）</td><td>${totalD}点</td><td>低いほど不満が多い</td></tr>` +
+                           `</table>`;
+
+        const explanation = `<h3>結果の解説</h3>` +
+                            `<ul>` +
+                            `<li><strong>仕事（A項目）</strong>：仕事の負担や裁量を評価。高いスコアは仕事のストレスが多いことを示します。</li>` +
+                            `<li><strong>心身の状態（B項目）</strong>：心や体の健康状態。高いスコアはストレス症状が強いことを示します。</li>` +
+                            `<li><strong>人間関係（C項目）</strong>：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。</li>` +
+                            `<li><strong>満足度（D項目）</strong>：仕事や生活の満足度。低いスコアは不満が多いことを示します。</li>` +
+                            `</ul>`;
+
+        resultDiv.innerHTML = `${evaluation}${scoreTable}${guidance}${explanation}${advice}`;
+
+        const data = {
+          company: stressForm.dataset.company,
+          name: stressForm.dataset.username,
+          year: parseInt(stressForm.dataset.year),
+          totalA,
+          totalB,
+          totalC,
+          totalD,
+          highStress: highStressFlag,
+          highStressReason,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem(`stress_${data.company}_${data.name}_${data.year}`, JSON.stringify(data));
+
+        localStorage.removeItem('autosave');
+      });
 
       loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         console.log('ログイン処理開始');
-        try {
-          const anonymousIdInput = document.getElementById('anonymousId').value.trim();
+        const company = document.getElementById('company').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const username = document.getElementById('username').value.trim();
+        const isAdmin = document.getElementById('adminCheck').checked;
 
-          if (anonymousIdInput === 'master' && anonymousIdInput === 'sakaue0000m') {
-            console.log('マスターログイン（パスワード一覧）');
-            window.location.href = 'masterPasswordPanel.html';
-            return;
-          }
-
-          if (anonymousIdInput === 'master' && anonymousIdInput === 'masterpass') {
-            console.log('マスターログイン（全データ）');
-            window.location.href = 'adminMaster.html';
-            return;
-          }
-
-          if (!anonymousIdInput || !anonymousIdInput.match(/^[A-Za-z0-9]+_\d{3}$/)) {
-            alert('正しい匿名IDを入力してください（例：ABC_001）。');
-            return;
-          }
-
-          // 匿名IDをlocalStorageに保存
-          localStorage.setItem('anonymousId', anonymousIdInput);
-          localStorage.setItem('companyCode', anonymousIdInput.split('_')[0]);
-          localStorage.setItem('currentYear', new Date().getFullYear());
-
-          // 質問ページへ遷移
-          window.location.href = 'checklist.html';
-          console.log('ログイン成功: checklist.htmlへ遷移');
-        } catch (error) {
-          console.error('ログインエラー:', error);
-          alert('ログインに失敗しました。匿名IDを確認してください。');
+        if (company === 'master' && password === 'sakaue0000m') {
+          console.log('マスターログイン（パスワード一覧）');
+          loginForm.style.display = 'none';
+          masterPasswordPanel.style.display = 'block';
+          loadPasswordData();
+          return;
         }
-      });
-    });
-  </script>
-</body>
-</html>
+
+        if (company === 'master' && password === 'masterpass') {
+          console.log('マスターログイン（全データ）');
+          loginForm.style.display = 'none';
+          adminMaster.style.display = 'block';
+          loadAllData();
+          return;
+        }
+
+        const savedData = localStorage.getItem('autosave');
+        if (savedData) {
+          const confirmRestore = confirm('前回の回答データがあります。復元しますか？');
+          if (confirmRestore) {
+            const answers = JSON.parse(savedData);
+            restoreFormData(answers);
+          } else {
+            localStorage.removeItem('autosave');
+          }
+        }
+
+        const passwordPattern = /^(?=(?:.*\d){4,})(?=(?:.*[a-zA-Z]){4,}).{8,}$/;
+        if (!isAdmin && !passwordPattern.test(password)) {
+          alert("パスワードは数字4文字以上・英字4文字以上を含み、合計8文字以上である必要があります。");
+          return;
+        }
+        if (!company) {
+          alert("会社名を入力してください。");
+          return;
+        }
+        if (!isAdmin && !username) {
+          alert("氏名を入力してください。");
+          return;
+        }
+
+        if (isAdmin) {
+          console.log('管理者ログイン処理');
+          const savedPass = localStorage.getItem("adminpass_" + company);
+          if (!savedPass) {
+            const hashed = await hashPassword(password);
+            localStorage.setItem("adminpass_" + company, hashed);
+            alert("管理者パスワードを新規登録しました。次回からこのパスワードが必要です。");
+            loginForm.style.display = 'none';
+            adminPanel.style.display = 'block';
+            loadAdminData(company);
+            const count = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
+              .filter(key => key.startsWith(`stress_${company}_`)).length;
+            const interviewCount = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
+              .filter(key => key.startsWith(`interview_${company}_`) && JSON.parse(localStorage.getItem(key)).interview === '希望する').length;
+            const countDiv = document.createElement('div');
+            countDiv.style.fontWeight = 'bold';
+            countDiv.style.marginBottom = '10px';
+            countDiv.textContent = `提出済み人数: ${count}人　／　面談希望者: ${interviewCount}人`;
+            adminResults.prepend(countDiv);
+          } else {
+            const hashedInput = await hashPassword(password);
+            if (hashedInput === savedPass) {
+              loginForm.style.display = 'none';
+              adminPanel.style.display = 'block';
+              loadAdminData(company);
+              const count = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
+                .filter(key => key.startsWith(`stress_${company}_`)).length;
+              const interviewCount = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
+                .filter(key => key.startsWith(`interview_${company}_`) && JSON.parse(localStorage.getItem(key)).interview === '希望する').length;
+              const countDiv = document.createElement('div');
+              countDiv.style.fontWeight = 'bold';
+              countDiv.style.marginBottom = '10px';
+              countDiv.textContent = `提出済み人数: ${count}人　／　面談希望者: ${interviewCount}人`;
+              adminResults.prepend(countDiv);
+            } else {
+              alert("管理者パスワードが違います。");
+              return;
+            }
+          }
+        } else {
+          console.log('通常ログイン処理');
+          const currentYear = new Date().getFullYear();
+          const submissionKey = `stress_${company}_${username}_${currentYear}`;
+          const existingSubmission = localStorage.getItem(submissionKey);
+          if (existingSubmission) {
+            const confirmEdit = confirm(`この年度（${currentYear}年）にはすでに提出済みです。結果を修正しますか？`);
+            if (!confirmEdit) {
+              return;
+            }
+            localStorage.setItem('autosave', existingSubmission);
+          }
+
+          loginForm.style.display = 'none';
+          checklist.style.display = 'block';
+          renderQuestions(sectionA, A_questions, 'A', ['そうだ', 'まあそうだ', 'やや違う', '違う']);
+          renderQuestions(sectionB, B_questions, 'B', ['ほとんどなかった', 'ときどきあった', 'しばしばあった', 'ほとんどいつもあった']);
+          renderQuestions(sectionC, C_questions, 'C', ['非常に', 'かなり', '多少', '全くない']);
+          renderQuestions(sectionD, D
