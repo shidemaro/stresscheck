@@ -29,9 +29,7 @@
 
     <main>
       <section id="userSection">
-        <h2>ストレスチェックを始めよう</h2>
-        <p>事業所から配布された匿名IDを入力してください。年度ごとに1回のみ提出可能です。</p>
-        <div class="notice">注意：ストレスチェックは1年1度の提出です。提出済みの場合は修正が可能です。匿名IDを他人と共有しないでください。</div>
+        <h2>ストレスチェック</h2>
         <form id="login-form">
           <input type="text" id="anonymousId" placeholder="匿名ID（例：ABC_001）" required aria-label="匿名ID">
           <button type="submit" class="submit-button">開始</button>
@@ -39,8 +37,8 @@
       </section>
 
       <section id="checklist" style="display:none;">
-        <h2>ストレスチェック</h2>
-        <div class="notice">注意：提出は1年1度までです。修正は可能です。匿名IDを他人と共有しないでください。</div>
+        <h2>ストレスチェック（57問）</h2>
+        <div class="notice">注意：すべての質問に回答してください。提出は1年1度まで、修正可能です。匿名IDを他人と共有しないでください。</div>
         <form id="stressForm">
           <h3>A. 仕事について（17問）</h3>
           <div id="sectionA"></div>
@@ -60,7 +58,7 @@
         <h2>ストレス要因の問診</h2>
         <div id="consentModal" style="display:none;">
           <div class="modal">
-            <p>この問診は匿名で処理され、個人情報は一切保存されません。ただし、ストレスが高い場合、ご同意のもとで回答内容が産業医に共有され、面談をサポートいたします。事業所外には開示されません。問診を始めますか？</p>
+            <p>この問診は匿名で処理され、個人情報は一切保存されません。ただし、ご同意のもとで回答内容が産業医に共有され、面談をサポートいたします。事業所外には開示されません。問診を始めますか？</p>
             <button onclick="startInterview()">同意して開始</button>
             <button onclick="cancelInterview()">キャンセル</button>
           </div>
@@ -268,9 +266,13 @@
           let guidance = "";
           let advice = "";
           if (highStressFlag) {
-            guidance = `<p>以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。問診に進みますか？</p>` +
-                       `<button class="submit-button" onclick="triggerInterview()">問診に進む</button>` +
-                       `<button class="submit-button" onclick="skipInterview()">スキップ</button>`;
+            guidance = `<p>以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。</p>` +
+                       `<div class="interview-selection">` +
+                       `<p>産業医面談を希望しますか？同時にストレス要因の問診（5問）を行います。</p>` +
+                       `<label><input type="radio" name="interview" value="希望する" required> 希望する</label>` +
+                       `<label><input type="radio" name="interview" value="希望しない" required> 希望しない</label>` +
+                       `<button class="submit-button" onclick="proceedWithInterview()">次へ</button>` +
+                       `</div>`;
             advice = `<div class="advice-section">` +
                      `<h3>あなたへのアドバイス</h3>` +
                      `<ul>` +
@@ -336,13 +338,23 @@
         }
       });
 
-      function skipInterview() {
-        document.getElementById('checklist').style.display = 'block';
-        document.getElementById('interviewSection').style.display = 'none';
-        saveInterview('希望しない');
+      function proceedWithInterview() {
+        const interview = document.querySelector('input[name="interview"]:checked')?.value;
+        if (!interview) {
+          alert('面談の希望を選択してください。');
+          return;
+        }
+        saveInterview(interview);
+        if (interview === '希望する') {
+          document.getElementById('result').style.display = 'none';
+          triggerInterview();
+        } else {
+          document.getElementById('checklist').style.display = 'none';
+          document.getElementById('result').style.display = 'block';
+        }
       }
 
-      function saveInterview(value = '未選択') {
+      function saveInterview(value) {
         const interviewData = {
           companyCode,
           anonymousId,
@@ -351,7 +363,6 @@
           timestamp: new Date().toISOString()
         };
         localStorage.setItem(`interview_${companyCode}_${anonymousId}_${interviewData.year}`, JSON.stringify(interviewData));
-        alert('面談希望の選択を保存しました。');
       }
 
       function startInterview() {
@@ -366,8 +377,8 @@
       function cancelInterview() {
         document.getElementById('consentModal').style.display = 'none';
         document.getElementById('interviewSection').style.display = 'none';
-        document.getElementById('checklist').style.display = 'block';
-        saveInterview('希望しない');
+        document.getElementById('checklist').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
       }
 
       function showQuestion() {
@@ -402,36 +413,40 @@
       }
 
       function shareSummary() {
-        const summary = window.currentSummary;
-        const tsv = Papa.unparse([{ 匿名ID: summary.id, 要因: summary.text }], { delimiter: '\t' });
-        const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `summary_${companyCode}_${anonymousId}_${stressForm.dataset.year}.tsv`;
-        a.click();
-        URL.revokeObjectURL(url);
-        document.getElementById('summaryConsentModal').style.display = 'none';
-        alert('ご回答を産業医に共有しました。ご協力ありがとうございました。');
-        saveInterview('希望する');
-        resetInterview();
+        try {
+          const summary = window.currentSummary;
+          const tsv = Papa.unparse([{ 匿名ID: summary.id, 要因: summary.text }], { delimiter: '\t' });
+          localStorage.setItem(`summary_${companyCode}_${anonymousId}_${stressForm.dataset.year}`, tsv);
+          const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `summary_${companyCode}_${anonymousId}_${stressForm.dataset.year}.tsv`;
+          a.click();
+          URL.revokeObjectURL(url);
+          document.getElementById('summaryConsentModal').style.display = 'none';
+          alert('ご回答を産業医に共有しました。ご協力ありがとうございました。');
+          resetInterview();
+        } catch (error) {
+          console.error('問診保存エラー:', error);
+          alert('問診の保存に失敗しました。もう一度お試しください。');
+        }
       }
 
       function cancelSummary() {
         document.getElementById('summaryConsentModal').style.display = 'none';
-        saveInterview('希望しない');
         resetInterview();
       }
 
       function resetInterview() {
         document.getElementById('interviewSection').style.display = 'none';
-        document.getElementById('checklist').style.display = 'block';
+        document.getElementById('result').style.display = 'block';
         answers = [];
         questionIndex = -1;
       }
 
       function triggerInterview() {
-        document.getElementById('checklist').style.display = 'none';
+        document.getElementById('result').style.display = 'none';
         document.getElementById('interviewSection').style.display = 'block';
         document.getElementById('consentModal').style.display = 'block';
       }
