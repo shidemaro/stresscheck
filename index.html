@@ -30,6 +30,17 @@
       background: rgba(0,0,0,0.5);
       z-index: 999;
     }
+    .forgot-password {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .forgot-password a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .forgot-password a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -57,6 +68,9 @@
         <input type="text" id="username" placeholder="氏名（個人用のみ）" aria-label="氏名">
         <label><input type="checkbox" id="adminCheck"> 管理者ログイン</label><br>
         <button type="submit" class="submit-button">ログイン</button>
+        <div class="forgot-password">
+          <a href="#" id="forgotPasswordLink">パスワードを忘れた場合</a>
+        </div>
       </form>
     </section>
 
@@ -95,20 +109,26 @@
 
     <section id="adminMaster" class="hidden">
       <h2>マスターログイン</h2>
-      <p>全会社の回答データを表示します（マッピングデータは表示されません）。</p>
+      <p>全会社の回答データおよび管理者パスワードを表示します（マッピングデータは各会社で管理）。</p>
       <button id="filterHighStressMaster" class="filter-button">高ストレス者のみ表示</button>
       <div class="table-wrapper">
         <div id="masterResults"></div>
       </div>
-      <button id="exportAllCSV" class="submit-button">すべてCSVダウンロード</button>
+      <button id="exportAllCSV" class="submit-button">結果CSVダウンロード</button>
+      <button id="viewAdminPasswords" class="submit-button">管理者パスワード一覧表示</button>
+      <div id="adminPasswordPanel" class="hidden">
+        <h3>管理者パスワード一覧</h3>
+        <div id="adminPasswordResults"></div>
+        <button id="exportAdminPasswordsCSV" class="submit-button">パスワード一覧CSVダウンロード</button>
+      </div>
     </section>
 
     <div id="authModal" class="hidden">
       <div class="modal-overlay"></div>
       <div class="modal">
-        <h3>管理者パスワード認証</h3>
+        <h3 id="authTitle">認証</h3>
         <form id="authForm">
-          <input type="password" id="authPassword" placeholder="管理者パスワード" required aria-label="管理者パスワード">
+          <input type="password" id="authPassword" placeholder="パスワード" required aria-label="パスワード">
           <button type="submit" class="submit-button">認証</button>
           <button type="button" id="cancelAuth" class="submit-button">キャンセル</button>
         </form>
@@ -208,10 +228,14 @@
       const masterResults = document.getElementById('masterResults');
       const mappingPanel = document.getElementById('mappingPanel');
       const mappingResults = document.getElementById('mappingResults');
+      const adminPasswordPanel = document.getElementById('adminPasswordPanel');
+      const adminPasswordResults = document.getElementById('adminPasswordResults');
       const authModal = document.getElementById('authModal');
       const authForm = document.getElementById('authForm');
+      const authTitle = document.getElementById('authTitle');
+      const forgotPasswordLink = document.getElementById('forgotPasswordLink');
 
-      // 質問データ（元の質問リストをそのまま使用）
+      // 質問データ
       const A_questions = [
         "非常にたくさんの仕事をしなければならない",
         "時間内に仕事が処理しきれない",
@@ -275,9 +299,10 @@
       ];
       const D_questions = ["仕事に満足だ", "家庭生活に満足だ"];
 
-      // グローバルスコープで結果を保持
+      // グローバルスコープで状態管理
       let stressResult = {};
       let currentCompany = '';
+      let authMode = '';
 
       function renderQuestions(section, questions, prefix, labels) {
         section.innerHTML = '';
@@ -304,6 +329,15 @@
           alert('フォームデータの復元に失敗しました。');
         }
       }
+
+      // パスワード忘れリンクの処理
+      forgotPasswordLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        const company = sanitizeInput(document.getElementById('company').value.trim()) || '未入力';
+        const subject = encodeURIComponent(`ストレスチェックシステム：管理者パスワードリセット依頼（${company}）`);
+        const body = encodeURIComponent(`以下の会社名で管理者パスワードのリセットを依頼します。\n\n会社名: ${company}\n\n詳細をご連絡ください。`);
+        window.location.href = `mailto:kohitsujiclinic2025@gmail.com?subject=${subject}&body=${body}`;
+      });
 
       stressForm.addEventListener('change', () => {
         const formData = new FormData(stressForm);
@@ -419,7 +453,7 @@
 
           currentCompany = company;
 
-          // マスターログイン（マッピングデータ非表示）
+          // マスターログイン
           if (company === 'master' && password === 'masterpass') {
             loginForm.classList.add('hidden');
             adminMaster.classList.remove('hidden');
@@ -646,7 +680,7 @@
         }
       }
 
-      function loadMappingData(company, password) {
+      function loadMappingData(company) {
         try {
           let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
                      "<tr><th>匿名ID</th><th>個人名</th><th>登録日時</th></tr>";
@@ -670,32 +704,50 @@
           mappingPanel.classList.remove('hidden');
 
           document.getElementById('exportMappingCSV').onclick = async () => {
-            const authPassword = prompt('管理者パスワードを再入力してください（セキュリティ確認）');
-            if (!authPassword) {
-              alert('パスワードが必要です。');
-              return;
-            }
-            const hashedInput = await hashPassword(authPassword);
-            const savedPass = localStorage.getItem(`adminpass_${company}`);
-            if (hashedInput !== savedPass) {
-              alert('パスワードが正しくありません。');
-              return;
-            }
-
-            try {
-              const rows = [["匿名ID", "個人名", "登録日時"]];
-              for (const item of mappingList) {
-                rows.push([item.anonymousID, item.username, item.timestamp]);
-              }
-              exportToCSV(rows, `${company}_anonymous_mapping.csv`);
-            } catch (e) {
-              console.error('マッピングCSVエクスポートエラー:', e);
-              alert('CSVのエクスポートに失敗しました。');
-            }
+            authModal.classList.remove('hidden');
+            authTitle.textContent = '管理者パスワード認証（マッピングCSVエクスポート）';
+            authMode = 'exportMappingCSV';
+            authForm.dataset.company = company;
           };
         } catch (e) {
           console.error('マッピングデータ読み込みエラー:', e);
           alert('マッピングデータの読み込みに失敗しました。');
+        }
+      }
+
+      function loadAdminPasswords() {
+        try {
+          let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                     "<tr><th>会社名</th><th>管理者パスワード（ハッシュ）</th><th>最終更新日時</th></tr>";
+          let passwordList = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('adminpass_')) {
+              const company = key.replace('adminpass_', '');
+              const passwordHash = localStorage.getItem(key);
+              const timestamp = localStorage.getItem(`adminpass_timestamp_${company}`) || '不明';
+              passwordList.push({ company, passwordHash, timestamp });
+            }
+          }
+
+          passwordList.sort((a, b) => a.company.localeCompare(b.company));
+
+          for (const item of passwordList) {
+            html += `<tr><td>${item.company}</td><td>${item.passwordHash}</td><td>${item.timestamp}</td></tr>`;
+          }
+          html += "</table>";
+
+          adminPasswordResults.innerHTML = html;
+          adminPasswordPanel.classList.remove('hidden');
+
+          document.getElementById('exportAdminPasswordsCSV').onclick = () => {
+            authModal.classList.remove('hidden');
+            authTitle.textContent = 'マスターパスワード認証（パスワード一覧CSVエクスポート）';
+            authMode = 'exportAdminPasswordsCSV';
+          };
+        } catch (e) {
+          console.error('管理者パスワード読み込みエラー:', e);
+          alert('管理者パスワードの読み込みに失敗しました。');
         }
       }
 
@@ -758,6 +810,15 @@
 
       document.getElementById('viewMapping').addEventListener('click', () => {
         authModal.classList.remove('hidden');
+        authTitle.textContent = '管理者パスワード認証（マッピング表示）';
+        authMode = 'viewMapping';
+        authForm.dataset.company = currentCompany;
+      });
+
+      document.getElementById('viewAdminPasswords').addEventListener('click', () => {
+        authModal.classList.remove('hidden');
+        authTitle.textContent = 'マスターパスワード認証（パスワード一覧表示）';
+        authMode = 'viewAdminPasswords';
       });
 
       authForm.addEventListener('submit', async (e) => {
@@ -765,12 +826,56 @@
         try {
           const password = document.getElementById('authPassword').value.trim();
           const hashedInput = await hashPassword(password);
-          const savedPass = localStorage.getItem(`adminpass_${currentCompany}`);
-          if (hashedInput === savedPass) {
+
+          if (authMode === 'viewMapping' || authMode === 'exportMappingCSV') {
+            const company = authForm.dataset.company;
+            const savedPass = localStorage.getItem(`adminpass_${company}`);
+            if (hashedInput !== savedPass) {
+              alert('管理者パスワードが正しくありません。');
+              return;
+            }
             authModal.classList.add('hidden');
-            loadMappingData(currentCompany, password);
-          } else {
-            alert('管理者パスワードが正しくありません。');
+            if (authMode === 'viewMapping') {
+              loadMappingData(company);
+            } else {
+              const mappingList = [];
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith(`mapping_${company}_`)) {
+                  mappingList.push(JSON.parse(localStorage.getItem(key)));
+                }
+              }
+              const rows = [["匿名ID", "個人名", "登録日時"]];
+              for (const item of mappingList) {
+                rows.push([item.anonymousID, item.username, item.timestamp]);
+              }
+              exportToCSV(rows, `${company}_anonymous_mapping.csv`);
+            }
+          } else if (authMode === 'viewAdminPasswords' || authMode === 'exportAdminPasswordsCSV') {
+            if (password !== 'masterpass') {
+              alert('マスターパスワードが正しくありません。');
+              return;
+            }
+            authModal.classList.add('hidden');
+            if (authMode === 'viewAdminPasswords') {
+              loadAdminPasswords();
+            } else {
+              const passwordList = [];
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('adminpass_')) {
+                  const company = key.replace('adminpass_', '');
+                  const passwordHash = localStorage.getItem(key);
+                  const timestamp = localStorage.getItem(`adminpass_timestamp_${company}`) || '不明';
+                  passwordList.push({ company, passwordHash, timestamp });
+                }
+              }
+              const rows = [["会社名", "管理者パスワード（ハッシュ）", "最終更新日時"]];
+              for (const item of passwordList) {
+                rows.push([item.company, item.passwordHash, item.timestamp]);
+              }
+              exportToCSV(rows, `管理者パスワード一覧.csv`);
+            }
           }
         } catch (e) {
           console.error('認証エラー:', e);
@@ -780,6 +885,7 @@
 
       document.getElementById('cancelAuth').addEventListener('click', () => {
         authModal.classList.add('hidden');
+        authMode = '';
       });
 
       document.getElementById('filterHighStress')?.addEventListener('click', () => {
