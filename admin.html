@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+  <html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ストレスチェックの事業所管理画面。匿名ID生成、従業員マッチング、データ確認。">
+    <meta name="keywords" content="ストレスチェック, メンタルヘルス, 職場ストレス, 事業所管理">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; frame-src 'none';">
+    <title>ストレスチェック - 管理画面</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/stresscheck/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>ストレスチェック - 管理画面</h1>
+      <nav>
+        <a href="/stresscheck/index.html">ホーム</a>
+        <a href="/stresscheck/admin.html">管理画面</a>
+        <a href="/stresscheck/howto.html">使い方</a>
+        <a href="/stresscheck/about.html">このサイトについて</a>
+        <a href="/stresscheck/faq.html">FAQ</a>
+        <a href="/stresscheck/contact.html">お問い合わせ</a>
+        <a href="/stresscheck/tips.html">ストレス管理のヒント</a>
+        <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="adminSection">
+        <h2>事業所登録</h2>
+        <p>会社名と従業員数を入力して匿名IDを生成してください。</p>
+        <input type="text" id="companyName" placeholder="会社名（例：ABC株式会社）" required aria-label="会社名">
+        <input type="number" id="employeeCount" placeholder="従業員数（例：50）" required aria-label="従業員数">
+        <button onclick="generateIds()">匿名IDを生成</button>
+        <button onclick="resetIdGeneration()">新規生成</button>
+        <div id="idList" style="display: none;">
+          <p>匿名IDリストをダウンロードしました。従業員名を入力してPDFを生成してください。</p>
+          <textarea id="employeeNames" placeholder="山田太郎, 佐藤花子, ..." rows="5"></textarea>
+          <button onclick="generatePdf()">PDFを出力</button>
+        </div>
+      </section>
+
+      <section id="adminPanel">
+        <h2>データ確認</h2>
+        <p>事業所コードを入力して高ストレス者のデータを確認してください。</p>
+        <input type="text" id="adminCompanyCode" placeholder="事業所コード（例：ABC）" required aria-label="事業所コード">
+        <button onclick="loadAdminData()">データ表示</button>
+        <button id="filterHighStress" class="filter-button" data-active="false">高ストレス者のみ表示</button>
+        <div class="table-wrapper">
+          <div id="adminResults"></div>
+        </div>
+        <button id="exportTSV" class="submit-button">TSVダウンロード</button>
+      </section>
+    </main>
+
+    <footer>
+      <p>© 2025 ストレスチェックシステム | 運営：ストレスチェックチーム</p>
+      <p>
+        <a href="/stresscheck/index.html">ホーム</a> |
+        <a href="/stresscheck/admin.html">管理画面</a> |
+        <a href="/stresscheck/howto.html">使い方</a> |
+        <a href="/stresscheck/about.html">このサイトについて</a> |
+        <a href="/stresscheck/faq.html">FAQ</a> |
+        <a href="/stresscheck/contact.html">お問い合わせ</a> |
+        <a href="/stresscheck/tips.html">ストレス管理のヒント</a> |
+        <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
+      </p>
+    </footer>
+
+    <script>
+      let companyCode = '';
+
+      function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+          const r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+      }
+
+      function sanitizeCompanyName(name) {
+        return name.replace(/[^A-Za-z0-9]/g, '').slice(0, 10).toUpperCase() || 'COMPANY';
+      }
+
+      function getTimestamp() {
+        const date = new Date();
+        return `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+      }
+
+      function generateIds() {
+        try {
+          const companyName = document.getElementById('companyName').value.trim();
+          const employeeCount = parseInt(document.getElementById('employeeCount').value);
+          if (!companyName) {
+            alert('会社名を入力してください。');
+            return;
+          }
+          if (!employeeCount || employeeCount < 1 || isNaN(employeeCount)) {
+            alert('有効な従業員数を入力してください（1以上）。');
+            return;
+          }
+          companyCode = sanitizeCompanyName(companyName);
+          const existingIds = localStorage.getItem(`ids_${companyCode}`);
+          if (existingIds) {
+            const confirmOverwrite = confirm(`会社 ${companyName} の匿名IDは既に存在します。上書きしますか？`);
+            if (!confirmOverwrite) {
+              return;
+            }
+          }
+          const ids = [];
+          for (let i = 1; i <= employeeCount; i++) {
+            const id = `${companyCode}_${String(i).padStart(3, '0')}`;
+            ids.push({ 会社名: companyName, 匿名ID: id });
+          }
+          localStorage.setItem(`ids_${companyCode}`, JSON.stringify(ids));
+          const tsv = Papa.unparse(ids, { delimiter: '\t' });
+          const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${companyName}_${getTimestamp()}.tsv`;
+          a.click();
+          document.body.appendChild(a);
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          document.getElementById('idList').style.display = 'block';
+        } catch (error) {
+          console.error('ID生成エラー:', error);
+          alert('匿名IDの生成に失敗しました。ブラウザの設定を確認し、再度お試しください。');
+        }
+      }
+
+      function resetIdGeneration() {
+        document.getElementById('companyName').value = '';
+        document.getElementById('employeeCount').value = '';
+        document.getElementById('employeeNames').value = '';
+        document.getElementById('idList').style.display = 'none';
+        document.getElementById('companyName').style.display = 'block';
+        document.getElementById('employeeCount').style.display = 'block';
+        document.getElementById('generateIds').style.display = 'block';
+      }
+
+      function generatePdf() {
+        try {
+          const employeeNames = document.getElementById('employeeNames').value.trim().split(',').map(name => name.trim()).filter(name => name);
+          const company = document.getElementById('companyName').value.trim();
+          if (employeeNames.length === 0) {
+            alert('従業員名を入力してください（例：山田太郎, 佐藤花子）。');
+            return;
+          }
+          const ids = JSON.parse(localStorage.getItem(`ids_${companyCode}`)) || [];
+          if (ids.length === 0) {
+            alert('匿名IDが見つかりません。先に匿名IDを生成してください。');
+            return;
+          }
+          if (employeeNames.length > ids.length) {
+            alert('入力した従業員数が匿名IDの数を超えています。');
+            return;
+          }
+          const shuffledIds = ids.sort(() => Math.random() - 0.5).slice(0, employeeNames.length);
+          const matching = shuffledIds.map((id, index) => ({
+            匿名ID: id.匿名ID,
+            従業員名: employeeNames[index]
+          }));
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          doc.setFont('helvetica', 'normal');
+          doc.text('匿名IDと従業員名のマッチング', 10, 10);
+          doc.text(`会社名: ${company}`, 10, 20);
+          matching.forEach((item, index) => {
+            doc.text(`${item.匿名ID}: ${item.従業員名}`, 10, 30 + index * 10);
+          });
+          doc.save(`${company}_${getTimestamp()}_matching.pdf`);
+        } catch (error) {
+          console.error('PDF生成エラー:', error);
+          alert('PDF生成に失敗しました。入力内容を確認し、再度お試しください。');
+        }
+      }
+
+      function loadAdminData() {
+        try {
+          const adminCompanyCode = document.getElementById('adminCompanyCode').value.trim();
+          if (!adminCompanyCode) {
+            alert('正しい事業所コードを入力してください（例：ABC）。');
+            return;
+          }
+          const highStressOnly = document.getElementById('filterHighStress').dataset.active === 'true';
+          let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                     "<tr><th>匿名ID</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>面談希望</th><th>回答日時</th></tr>";
+          let dataList = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(`stress_${adminCompanyCode}_`)) {
+              const item = JSON.parse(localStorage.getItem(key));
+              if (!highStressOnly || item.highStress) {
+                const interviewKey = `interview_${adminCompanyCode}_${item.anonymousId}_${item.year}`;
+                const interviewData = localStorage.getItem(interviewKey);
+                item.interview = interviewData ? JSON.parse(interviewData).interview : '未選択';
+                dataList.push(item);
+              }
+            }
+          }
+
+          dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
+
+          for (const item of dataList) {
+            const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+            html += `<tr><td>${item.anonymousId}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.interview}</td><td>${item.timestamp}</td></tr>`;
+          }
+          html += "</table>";
+
+          document.getElementById('adminResults').innerHTML = html;
+
+          document.getElementById('exportTSV').onclick = () => {
+            const rows = [["匿名ID", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "面談希望", "回答日時"]];
+            for (const item of dataList) {
+              const highStress = item.highStress ? 'はい' : 'いいえ';
+              rows.push([item.anonymousId, item.year, item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', item.interview, item.timestamp]);
+            }
+            const tsv = Papa.unparse(rows, { delimiter: '\t' });
+            const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${adminCompanyCode}_${getTimestamp()}_stress_check.tsv`;
+            a.click();
+            document.body.appendChild(a);
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          };
+        } catch (error) {
+          console.error('管理データ読み込みエラー:', error);
+          alert('データの読み込みに失敗しました。事業所コードを確認してください。');
+        }
+      }
+
+      document.getElementById('filterHighStress').addEventListener('click', () => {
+        const currentState = document.getElementById('filterHighStress').dataset.active === 'true';
+        document.getElementById('filterHighStress').dataset.active = !currentState;
+        document.getElementById('filterHighStress').textContent = !currentState ? '全データ表示' : '高ストレス者のみ表示';
+        loadAdminData();
+      });
+    </script>
+  </body>
+  </html>
