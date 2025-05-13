@@ -8,6 +8,29 @@
   <title>ストレスチェック</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/stresscheck/styles.css">
+  <style>
+    .hidden { display: none; }
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border: 1px solid #ccc;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -37,7 +60,7 @@
       </form>
     </section>
 
-    <section id="checklist" style="display:none;">
+    <section id="checklist" class="hidden">
       <h2>ストレスチェック</h2>
       <div class="notice">注意：提出は1年1度までです。修正は可能です。パスワードを他人と共有しないでください。</div>
       <form id="stressForm">
@@ -55,18 +78,24 @@
       <button id="downloadPDF" class="submit-button">PDFとして保存</button>
     </section>
 
-    <section id="adminPanel" style="display:none;">
+    <section id="adminPanel" class="hidden">
       <h2>管理画面</h2>
       <button id="filterHighStress" class="filter-button">高ストレス者のみ表示</button>
       <div class="table-wrapper">
         <div id="adminResults"></div>
       </div>
-      <button id="exportCSV" class="submit-button">CSVダウンロード</button>
+      <button id="exportCSV" class="submit-button">結果CSVダウンロード</button>
+      <button id="viewMapping" class="submit-button">匿名IDマッピング表示</button>
+      <div id="mappingPanel" class="hidden">
+        <h3>匿名IDと個人名の対応表</h3>
+        <div id="mappingResults"></div>
+        <button id="exportMappingCSV" class="submit-button">マッピングCSVダウンロード</button>
+      </div>
     </section>
 
-    <section id="adminMaster" style="display:none;">
+    <section id="adminMaster" class="hidden">
       <h2>マスターログイン</h2>
-      <p>全会社の回答データを表示します。</p>
+      <p>全会社の回答データを表示します（マッピングデータは表示されません）。</p>
       <button id="filterHighStressMaster" class="filter-button">高ストレス者のみ表示</button>
       <div class="table-wrapper">
         <div id="masterResults"></div>
@@ -74,15 +103,17 @@
       <button id="exportAllCSV" class="submit-button">すべてCSVダウンロード</button>
     </section>
 
-    <section id="masterPasswordPanel" style="display:none;">
-      <!-- INFOLINKS_OFF -->
-      <h2>管理者パスワード一覧</h2>
-      <p>全会社の管理者パスワードと関連する個人名を表示します。</p>
-      <div class="table-wrapper">
-        <div id="masterPasswordResults"></div>
+    <div id="authModal" class="hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal">
+        <h3>管理者パスワード認証</h3>
+        <form id="authForm">
+          <input type="password" id="authPassword" placeholder="管理者パスワード" required aria-label="管理者パスワード">
+          <button type="submit" class="submit-button">認証</button>
+          <button type="button" id="cancelAuth" class="submit-button">キャンセル</button>
+        </form>
       </div>
-      <!-- INFOLINKS_ON -->
-    </section>
+    </div>
   </main>
 
   <footer>
@@ -100,12 +131,45 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
+    // 匿名ID生成関数
+    async function generateAnonymousID(company, username, password) {
+      const input = `${company}_${username}_${password}`;
+      const msgBuffer = new TextEncoder().encode(input);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const companyPrefix = (company.slice(0, 3) || 'UNK').toUpperCase();
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      return `${companyPrefix}_${randomNum}`;
+    }
+
     // パスワードハッシュ化関数
     async function hashPassword(password) {
       const msgBuffer = new TextEncoder().encode(password);
       const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // 入力サニタイズ関数
+    function sanitizeInput(input) {
+      const div = document.createElement('div');
+      div.textContent = input;
+      return div.innerHTML;
+    }
+
+    // CSVエクスポート関数
+    function exportToCSV(rows, filename) {
+      const csv = rows.map(r => r.join(",")).join("\n");
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     // 産業医面談の選択を保存
@@ -116,16 +180,16 @@
         return;
       }
       const company = stressForm.dataset.company;
-      const username = stressForm.dataset.username;
+      const anonymousID = stressForm.dataset.anonymousID;
       const year = stressForm.dataset.year;
       const interviewData = {
         company,
-        username,
+        anonymousID,
         year: parseInt(year),
         interview,
         timestamp: new Date().toISOString()
       };
-      localStorage.setItem(`interview_${company}_${username}_${year}`, JSON.stringify(interviewData));
+      localStorage.setItem(`interview_${company}_${anonymousID}_${year}`, JSON.stringify(interviewData));
       alert('面談希望の選択を保存しました。');
     }
 
@@ -134,7 +198,6 @@
       const checklist = document.getElementById('checklist');
       const adminPanel = document.getElementById('adminPanel');
       const adminMaster = document.getElementById('adminMaster');
-      const masterPasswordPanel = document.getElementById('masterPasswordPanel');
       const stressForm = document.getElementById('stressForm');
       const resultDiv = document.getElementById('result');
       const sectionA = document.getElementById('sectionA');
@@ -143,8 +206,12 @@
       const sectionD = document.getElementById('sectionD');
       const adminResults = document.getElementById('adminResults');
       const masterResults = document.getElementById('masterResults');
-      const masterPasswordResults = document.getElementById('masterPasswordResults');
+      const mappingPanel = document.getElementById('mappingPanel');
+      const mappingResults = document.getElementById('mappingResults');
+      const authModal = document.getElementById('authModal');
+      const authForm = document.getElementById('authForm');
 
+      // 質問データ（元の質問リストをそのまま使用）
       const A_questions = [
         "非常にたくさんの仕事をしなければならない",
         "時間内に仕事が処理しきれない",
@@ -208,64 +275,37 @@
       ];
       const D_questions = ["仕事に満足だ", "家庭生活に満足だ"];
 
+      // グローバルスコープで結果を保持
+      let stressResult = {};
+      let currentCompany = '';
+
       function renderQuestions(section, questions, prefix, labels) {
         section.innerHTML = '';
         questions.forEach((q, idx) => {
           const div = document.createElement('div');
           div.className = 'question';
           const qNum = idx + 1;
-          div.innerHTML = `<p>${q}</p><div class="options">` + 
-            labels.map((label, i) => 
-              `<label><input type="radio" name="${prefix}${qNum}" value="${i+1}" required>${label}</label>`
+          div.innerHTML = `<p>${sanitizeInput(q)}</p><div class="options">` +
+            labels.map((label, i) =>
+              `<label><input type="radio" name="${prefix}${qNum}" value="${i+1}" required aria-label="${label}">${label}</label>`
             ).join('') + `</div>`;
           section.appendChild(div);
         });
       }
 
-      function loadPasswordData() {
-        let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                   "<tr><th>会社名</th><th>管理者パスワード（ハッシュ）</th><th>個人名</th></tr>";
-        let companies = new Set();
-        let companyData = {};
-
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key.startsWith('adminpass_')) {
-            const company = key.replace('adminpass_', '');
-            companies.add(company);
-            companyData[company] = { password: localStorage.getItem(key), users: new Set() };
-          }
-        }
-
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key.startsWith('stress_')) {
-            const item = JSON.parse(localStorage.getItem(key));
-            if (item.company && companyData[item.company]) {
-              companyData[item.company].users.add(item.name);
-            }
-          }
-        }
-
-        for (const company of companies) {
-          const password = companyData[company].password || '未設定';
-          const users = Array.from(companyData[company].users).join(', ') || 'なし';
-          html += `<tr><td>${company}</td><td>${password}</td><td>${users}</td></tr>`;
-        }
-        html += "</table>";
-
-        masterPasswordResults.innerHTML = html;
-      }
-
       function restoreFormData(data) {
-        Object.keys(data).forEach(key => {
-          const radio = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
-          if (radio) radio.checked = true;
-        });
+        try {
+          Object.keys(data).forEach(key => {
+            const radio = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
+            if (radio) radio.checked = true;
+          });
+        } catch (e) {
+          console.error('フォームデータ復元エラー:', e);
+          alert('フォームデータの復元に失敗しました。');
+        }
       }
 
       stressForm.addEventListener('change', () => {
-        console.log('ストレスフォーム変更検知');
         const formData = new FormData(stressForm);
         const answerData = {};
         for (let [key, value] of formData.entries()) {
@@ -276,427 +316,480 @@
 
       stressForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        console.log('ストレスフォーム送信');
-        const formData = new FormData(stressForm);
-        let totalA = 0, totalB = 0, totalC = 0, totalD = 0;
-        for (let [key, value] of formData.entries()) {
-          const score = parseInt(value);
-          const section = key.charAt(0);
-          if (section === 'A') totalA += score;
-          else if (section === 'B') totalB += score;
-          else if (section === 'C') totalC += score;
-          else if (section === 'D') totalD += score;
-        }
-        let evaluation = "";
-        let highStressFlag = false;
-        let highStressReason = "";
-        if (totalB >= 77) {
-          highStressReason = "最近の心身の状態（B項目）の合計が77点以上で、ストレスが高い状態です。";
-          evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
-          highStressFlag = true;
-        } else if ((totalA + totalC) >= 76 && totalB >= 63) {
-          highStressReason = "仕事や人間関係（A+C項目）の合計が76点以上、かつ心身の状態（B項目）が63点以上で、ストレスが高い状態です。";
-          evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
-          highStressFlag = true;
-        }
+        try {
+          const formData = new FormData(stressForm);
+          let totalA = 0, totalB = 0, totalC = 0, totalD = 0;
+          for (let [key, value] of formData.entries()) {
+            const score = parseInt(value);
+            const section = key.charAt(0);
+            if (section === 'A') totalA += score;
+            else if (section === 'B') totalB += score;
+            else if (section === 'C') totalC += score;
+            else if (section === 'D') totalD += score;
+          }
 
-        let guidance = "";
-        let advice = "";
-        if (highStressFlag) {
-          guidance = `<p>以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。</p>` +
-                     `<div class="interview-selection">` +
-                     `<p>産業医面談を希望しますか？</p>` +
-                     `<label><input type="radio" name="interview" value="希望する" required> 希望する</label>` +
-                     `<label><input type="radio" name="interview" value="希望しない" required> 希望しない</label>` +
-                     `<button class="submit-button" onclick="saveInterview()">保存</button>` +
+          let evaluation = "", highStressFlag = false, highStressReason = "";
+          if (totalB >= 77) {
+            highStressReason = "最近の心身の状態（B項目）の合計が77点以上で、ストレスが高い状態です。";
+            evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
+            highStressFlag = true;
+          } else if ((totalA + totalC) >= 76 && totalB >= 63) {
+            highStressReason = "仕事や人間関係（A+C項目）の合計が76点以上、かつ心身の状態（B項目）が63点以上で、ストレスが高い状態です。";
+            evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
+            highStressFlag = true;
+          }
+
+          stressResult = { totalA, totalB, totalC, totalD, highStressFlag, highStressReason };
+
+          let guidance = "";
+          let advice = "";
+          if (highStressFlag) {
+            guidance = `<p>以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。</p>` +
+                      `<div class="interview-selection">` +
+                      `<p>産業医面談を希望しますか？</p>` +
+                      `<label><input type="radio" name="interview" value="希望する" required> 希望する</label>` +
+                      `<label><input type="radio" name="interview" value="希望しない" required> 希望しない</label>` +
+                      `<button class="submit-button" onclick="saveInterview()">保存</button>` +
+                      `</div>`;
+            advice = `<div class="advice-section">` +
+                     `<h3>あなたへのアドバイス</h3>` +
+                     `<ul>` +
+                     `<li>ストレスが高い状態です。産業医や専門家に相談することで、具体的な改善策が見つかります。</li>` +
+                     `<li>十分な休息やリラックスできる時間を意識的に確保しましょう。</li>` +
+                     `<li>職場での負担や人間関係について、上司や同僚とオープンに話す機会を検討してください。</li>` +
+                     `</ul>` +
                      `</div>`;
-          advice = `<div class="advice-section">` +
-                   `<h3>あなたへのアドバイス</h3>` +
-                   `<ul>` +
-                   `<li>ストレスが高い状態です。産業医や専門家に相談することで、具体的な改善策が見つかります。</li>` +
-                   `<li>十分な休息やリラックスできる時間を意識的に確保しましょう。</li>` +
-                   `<li>職場での負担や人間関係について、上司や同僚とオープンに話す機会を検討してください。</li>` +
-                   `</ul>` +
-                   `</div>`;
-        } else {
-          advice = `<div class="advice-section">` +
-                   `<h3>あなたへのアドバイス</h3>` +
-                   `<ul>` +
-                   `<li>現在のストレス状態は良好です。引き続き健康的な生活習慣を維持しましょう。</li>` +
-                   `<li>定期的なストレスチェックで、変化に早めに気づくことが大切です。</li>` +
-                   `<li>職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。</li>` +
-                   `</ul>` +
-                   `</div>`;
+          } else {
+            advice = `<div class="advice-section">` +
+                     `<h3>あなたへのアドバイス</h3>` +
+                     `<ul>` +
+                     `<li>現在のストレス状態は良好です。引き続き健康的な生活習慣を維持しましょう。</li>` +
+                     `<li>定期的なストレスチェックで、変化に早めに気づくことが大切です。</li>` +
+                     `<li>職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。</li>` +
+                     `</ul>` +
+                     `</div>`;
+          }
+
+          const scoreTable = `<table>` +
+                            `<tr><th>項目</th><th>あなたのスコア</th><th>基準値</th></tr>` +
+                            `<tr><td>仕事（A項目）</td><td>${totalA}点</td><td>高いほど仕事の負担が多い</td></tr>` +
+                            `<tr><td>心身の状態（B項目）</td><td>${totalB}点</td><td>77点以上で高ストレス</td></tr>` +
+                            `<tr><td>人間関係（C項目）</td><td>${totalC}点</td><td>低いほど支援が少ない</td></tr>` +
+                            `<tr><td>満足度（D項目）</td><td>${totalD}点</td><td>低いほど不満が多い</td></tr>` +
+                            `</table>`;
+
+          const explanation = `<h3>結果の解説</h3>` +
+                             `<ul>` +
+                             `<li><strong>仕事（A項目）</strong>：仕事の負担や裁量を評価。高いスコアは仕事のストレスが多いことを示します。</li>` +
+                             `<li><strong>心身の状態（B項目）</strong>：心や体の健康状態。高いスコアはストレス症状が強いことを示します。</li>` +
+                             `<li><strong>人間関係（C項目）</strong>：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。</li>` +
+                             `<li><strong>満足度（D項目）</strong>：仕事や生活の満足度。低いスコアは不満が多いことを示します。</li>` +
+                             `</ul>`;
+
+          resultDiv.innerHTML = `${evaluation}${scoreTable}${guidance}${explanation}${advice}`;
+
+          const data = {
+            company: stressForm.dataset.company,
+            anonymousID: stressForm.dataset.anonymousID,
+            year: parseInt(stressForm.dataset.year),
+            totalA,
+            totalB,
+            totalC,
+            totalD,
+            highStress: highStressFlag,
+            highStressReason,
+            timestamp: new Date().toISOString()
+          };
+          localStorage.setItem(`stress_${data.company}_${data.anonymousID}_${data.year}`, JSON.stringify(data));
+
+          localStorage.removeItem('autosave');
+        } catch (e) {
+          console.error('フォーム送信エラー:', e);
+          alert('データの送信に失敗しました。もう一度お試しください。');
         }
-
-        const scoreTable = `<table>` +
-                           `<tr><th>項目</th><th>あなたのスコア</th><th>基準値</th></tr>` +
-                           `<tr><td>仕事（A項目）</td><td>${totalA}点</td><td>高いほど仕事の負担が多い</td></tr>` +
-                           `<tr><td>心身の状態（B項目）</td><td>${totalB}点</td><td>77点以上で高ストレス</td></tr>` +
-                           `<tr><td>人間関係（C項目）</td><td>${totalC}点</td><td>低いほど支援が少ない</td></tr>` +
-                           `<tr><td>満足度（D項目）</td><td>${totalD}点</td><td>低いほど不満が多い</td></tr>` +
-                           `</table>`;
-
-        const explanation = `<h3>結果の解説</h3>` +
-                            `<ul>` +
-                            `<li><strong>仕事（A項目）</strong>：仕事の負担や裁量を評価。高いスコアは仕事のストレスが多いことを示します。</li>` +
-                            `<li><strong>心身の状態（B項目）</strong>：心や体の健康状態。高いスコアはストレス症状が強いことを示します。</li>` +
-                            `<li><strong>人間関係（C項目）</strong>：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。</li>` +
-                            `<li><strong>満足度（D項目）</strong>：仕事や生活の満足度。低いスコアは不満が多いことを示します。</li>` +
-                            `</ul>`;
-
-        resultDiv.innerHTML = `${evaluation}${scoreTable}${guidance}${explanation}${advice}`;
-
-        const data = {
-          company: stressForm.dataset.company,
-          name: stressForm.dataset.username,
-          year: parseInt(stressForm.dataset.year),
-          totalA,
-          totalB,
-          totalC,
-          totalD,
-          highStress: highStressFlag,
-          highStressReason,
-          timestamp: new Date().toISOString()
-        };
-        localStorage.setItem(`stress_${data.company}_${data.name}_${data.year}`, JSON.stringify(data));
-
-        localStorage.removeItem('autosave');
       });
 
       loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        console.log('ログイン処理開始');
-        const company = document.getElementById('company').value.trim();
-        const password = document.getElementById('password').value.trim();
-        const username = document.getElementById('username').value.trim();
-        const isAdmin = document.getElementById('adminCheck').checked;
+        try {
+          const company = sanitizeInput(document.getElementById('company').value.trim());
+          const password = document.getElementById('password').value.trim();
+          const username = sanitizeInput(document.getElementById('username').value.trim());
+          const isAdmin = document.getElementById('adminCheck').checked;
 
-        if (company === 'master' && password === 'sakaue0000m') {
-          console.log('マスターログイン（パスワード一覧）');
-          loginForm.style.display = 'none';
-          masterPasswordPanel.style.display = 'block';
-          loadPasswordData();
-          return;
-        }
+          currentCompany = company;
 
-        if (company === 'master' && password === 'masterpass') {
-          console.log('マスターログイン（全データ）');
-          loginForm.style.display = 'none';
-          adminMaster.style.display = 'block';
-          loadAllData();
-          return;
-        }
-
-        const savedData = localStorage.getItem('autosave');
-        if (savedData) {
-          const confirmRestore = confirm('前回の回答データがあります。復元しますか？');
-          if (confirmRestore) {
-            const answers = JSON.parse(savedData);
-            restoreFormData(answers);
-          } else {
-            localStorage.removeItem('autosave');
+          // マスターログイン（マッピングデータ非表示）
+          if (company === 'master' && password === 'masterpass') {
+            loginForm.classList.add('hidden');
+            adminMaster.classList.remove('hidden');
+            loadAllData();
+            return;
           }
-        }
 
-        const passwordPattern = /^(?=(?:.*\d){4,})(?=(?:.*[a-zA-Z]){4,}).{8,}$/;
-        if (!isAdmin && !passwordPattern.test(password)) {
-          alert("パスワードは数字4文字以上・英字4文字以上を含み、合計8文字以上である必要があります。");
-          return;
-        }
-        if (!company) {
-          alert("会社名を入力してください。");
-          return;
-        }
-        if (!isAdmin && !username) {
-          alert("氏名を入力してください。");
-          return;
-        }
+          const passwordPattern = /^(?=(?:.*\d){4,})(?=(?:.*[a-zA-Z]){4,}).{8,}$/;
+          if (!isAdmin && !passwordPattern.test(password)) {
+            alert("パスワードは数字4文字以上・英字4文字以上を含み、合計8文字以上である必要があります。");
+            return;
+          }
+          if (!company) {
+            alert("会社名を入力してください。");
+            return;
+          }
+          if (!isAdmin && !username) {
+            alert("氏名を入力してください。");
+            return;
+          }
 
-        if (isAdmin) {
-          console.log('管理者ログイン処理');
-          const savedPass = localStorage.getItem("adminpass_" + company);
-          if (!savedPass) {
-            const hashed = await hashPassword(password);
-            localStorage.setItem("adminpass_" + company, hashed);
-            alert("管理者パスワードを新規登録しました。次回からこのパスワードが必要です。");
-            loginForm.style.display = 'none';
-            adminPanel.style.display = 'block';
-            loadAdminData(company);
-            const count = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
-              .filter(key => key.startsWith(`stress_${company}_`)).length;
-            const interviewCount = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
-              .filter(key => key.startsWith(`interview_${company}_`)).length;
-            const countDiv = document.createElement('div');
-            countDiv.style.fontWeight = 'bold';
-            countDiv.style.marginBottom = '10px';
-            countDiv.textContent = `提出済み人数: ${count}人　／　面談希望者: ${interviewCount}人`;
-            adminResults.prepend(countDiv);
-          } else {
-            const hashedInput = await hashPassword(password);
-            if (hashedInput === savedPass) {
-              loginForm.style.display = 'none';
-              adminPanel.style.display = 'block';
+          if (isAdmin) {
+            const savedPass = localStorage.getItem(`adminpass_${company}`);
+            if (!savedPass) {
+              const hashed = await hashPassword(password);
+              localStorage.setItem(`adminpass_${company}`, hashed);
+              alert("管理者パスワードを新規登録しました。次回からこのパスワードが必要です。");
+              loginForm.classList.add('hidden');
+              adminPanel.classList.remove('hidden');
               loadAdminData(company);
-              const count = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
-                .filter(key => key.startsWith(`stress_${company}_`)).length;
-              const interviewCount = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i))
-                .filter(key => key.startsWith(`interview_${company}_`)).length;
-              const countDiv = document.createElement('div');
-              countDiv.style.fontWeight = 'bold';
-              countDiv.style.marginBottom = '10px';
-              countDiv.textContent = `提出済み人数: ${count}人　／　面談希望者: ${interviewCount}人`;
-              adminResults.prepend(countDiv);
             } else {
-              alert("管理者パスワードが違います。");
-              return;
+              const hashedInput = await hashPassword(password);
+              if (hashedInput === savedPass) {
+                loginForm.classList.add('hidden');
+                adminPanel.classList.remove('hidden');
+                loadAdminData(company);
+              } else {
+                alert("管理者パスワードが違います。");
+                return;
+              }
+            }
+          } else {
+            const anonymousID = await generateAnonymousID(company, username, password);
+            const mappingData = {
+              company,
+              username,
+              anonymousID,
+              timestamp: new Date().toISOString()
+            };
+            localStorage.setItem(`mapping_${company}_${anonymousID}`, JSON.stringify(mappingData));
+
+            const currentYear = new Date().getFullYear();
+            const submissionKey = `stress_${company}_${anonymousID}_${currentYear}`;
+            const existingSubmission = localStorage.getItem(submissionKey);
+            if (existingSubmission) {
+              const confirmEdit = confirm(`この年度（${currentYear}年）にはすでに提出済みです。結果を修正しますか？`);
+              if (!confirmEdit) {
+                return;
+              }
+              localStorage.setItem('autosave', existingSubmission);
+            }
+
+            loginForm.classList.add('hidden');
+            checklist.classList.remove('hidden');
+            renderQuestions(sectionA, A_questions, 'A', ['そうだ', 'まあそうだ', 'やや違う', '違う']);
+            renderQuestions(sectionB, B_questions, 'B', ['ほとんどなかった', 'ときどきあった', 'しばしばあった', 'ほとんどいつもあった']);
+            renderQuestions(sectionC, C_questions, 'C', ['非常に', 'かなり', '多少', '全くない']);
+            renderQuestions(sectionD, D_questions, 'D', ['満足', 'まあ満足', 'やや不満足', '不満足']);
+            stressForm.dataset.company = company;
+            stressForm.dataset.anonymousID = anonymousID;
+            stressForm.dataset.year = currentYear;
+
+            if (existingSubmission) {
+              const savedAnswers = JSON.parse(existingSubmission);
+              restoreFormData(savedAnswers);
             }
           }
-        } else {
-          console.log('通常ログイン処理');
-          const currentYear = new Date().getFullYear();
-          const submissionKey = `stress_${company}_${username}_${currentYear}`;
-          const existingSubmission = localStorage.getItem(submissionKey);
-          if (existingSubmission) {
-            const confirmEdit = confirm(`この年度（${currentYear}年）にはすでに提出済みです。結果を修正しますか？`);
-            if (!confirmEdit) {
-              return;
-            }
-            localStorage.setItem('autosave', existingSubmission);
-          }
-
-          loginForm.style.display = 'none';
-          checklist.style.display = 'block';
-          renderQuestions(sectionA, A_questions, 'A', ['そうだ', 'まあそうだ', 'やや違う', '違う']);
-          renderQuestions(sectionB, B_questions, 'B', ['ほとんどなかった', 'ときどきあった', 'しばしばあった', 'ほとんどいつもあった']);
-          renderQuestions(sectionC, C_questions, 'C', ['非常に', 'かなり', '多少', '全くない']);
-          renderQuestions(sectionD, D_questions, 'D', ['満足', 'まあ満足', 'やや不満足', '不満足']);
-          stressForm.dataset.company = company;
-          stressForm.dataset.username = username;
-          stressForm.dataset.year = currentYear;
-
-          if (existingSubmission) {
-            const savedAnswers = JSON.parse(existingSubmission);
-            restoreFormData(savedAnswers);
-          }
+        } catch (e) {
+          console.error('ログインエラー:', e);
+          alert('ログインに失敗しました。もう一度お試しください。');
         }
       });
 
       document.getElementById('downloadPDF').addEventListener('click', () => {
-        console.log('PDFダウンロード開始');
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const company = stressForm.dataset.company || '不明';
-        const username = stressForm.dataset.username || '不明';
-        const year = stressForm.dataset.year || '不明';
+        try {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          const company = stressForm.dataset.company || '不明';
+          const anonymousID = stressForm.dataset.anonymousID || '不明';
+          const year = stressForm.dataset.year || '不明';
 
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
-        doc.text(`ストレスチェック結果 (${company} - ${username} - ${year}年度)`, 10, 10);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(12);
-        doc.text('あなたのスコア', 10, 20);
-        doc.autoTable({
-          startY: 25,
-          head: [['項目', 'スコア', '基準値']],
-          body: [
-            ['仕事（A項目）', `${totalA}点`, '高いほど仕事の負担が多い'],
-            ['心身の状態（B項目）', `${totalB}点`, '77点以上で高ストレス'],
-            ['人間関係（C項目）', `${totalC}点`, '低いほど支援が少ない'],
-            ['満足度（D項目）', `${totalD}点`, '低いほど不満が多い'],
-          ],
-          styles: { font: 'helvetica', fontSize: 10 },
-          headStyles: { fillColor: [200, 200, 200] },
-        });
-
-        let yPos = doc.lastAutoTable.finalY + 10;
-        if (highStressFlag) {
-          doc.setTextColor(255, 0, 0);
           doc.setFont('helvetica', 'bold');
-          doc.text(`高ストレス判定：${highStressReason}`, 10, yPos);
-          yPos += 10;
-          doc.setTextColor(0);
+          doc.setFontSize(16);
+          doc.text(`ストレスチェック結果 (${company} - ${anonymousID} - ${year}年度)`, 10, 10);
+
           doc.setFont('helvetica', 'normal');
-          doc.text('産業医との面談をおすすめします。', 10, yPos);
-          yPos += 10;
-        } else {
-          doc.text('現在のストレス状態は良好です。', 10, yPos);
-          yPos += 10;
+          doc.setFontSize(12);
+          doc.text('あなたのスコア', 10, 20);
+          doc.autoTable({
+            startY: 25,
+            head: [['項目', 'スコア', '基準値']],
+            body: [
+              ['仕事（A項目）', `${stressResult.totalA || 0}点`, '高いほど仕事の負担が多い'],
+              ['心身の状態（B項目）', `${stressResult.totalB || 0}点`, '77点以上で高ストレス'],
+              ['人間関係（C項目）', `${stressResult.totalC || 0}点`, '低いほど支援が少ない'],
+              ['満足度（D項目）', `${stressResult.totalD || 0}点`, '低いほど不満が多い'],
+            ],
+            styles: { font: 'helvetica', fontSize: 10 },
+            headStyles: { fillColor: [200, 200, 200] },
+          });
+
+          let yPos = doc.lastAutoTable.finalY + 10;
+          if (stressResult.highStressFlag) {
+            doc.setTextColor(255, 0, 0);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`高ストレス判定：${stressResult.highStressReason || ''}`, 10, yPos);
+            yPos += 10;
+            doc.setTextColor(0);
+            doc.setFont('helvetica', 'normal');
+            doc.text('産業医との面談をおすすめします。', 10, yPos);
+            yPos += 10;
+          } else {
+            doc.text('現在のストレス状態は良好です。', 10, yPos);
+            yPos += 10;
+          }
+
+          doc.text('あなたへのアドバイス', 10, yPos);
+          yPos += 5;
+          const adviceText = stressResult.highStressFlag
+            ? `- ストレスが高い状態です。産業医や専門家に相談しましょう。\n` +
+              `- 十分な休息やリラックスできる時間を確保してください。\n` +
+              `- 職場での負担や人間関係について、上司や同僚と話す機会を検討してください。`
+            : `- 現在のストレス状態は良好です。健康的な生活習慣を維持しましょう。\n` +
+              `- 定期的なストレスチェックで、変化に早めに気づくことが大切です。\n` +
+              `- 職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。`;
+          doc.text(adviceText, 10, yPos, { maxWidth: 190 });
+
+          yPos += 30;
+          doc.text('結果の解説', 10, yPos);
+          yPos += 5;
+          const explanationText = `- 仕事（A項目）：仕事の負担や裁量を評価。高いスコアは仕事のストレスが多いことを示します。\n` +
+                                 `- 心身の状態（B項目）：心や体の健康状態。高いスコアはストレス症状が強いことを示します。\n` +
+                                 `- 人間関係（C項目）：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。\n` +
+                                 `- 満足度（D項目）：仕事や生活の満足度。低いスコアは不満が多いことを示します。`;
+          doc.text(explanationText, 10, yPos, { maxWidth: 190 });
+
+          doc.save(`${company}_${anonymousID}_${year}_stress_check.pdf`);
+        } catch (e) {
+          console.error('PDF生成エラー:', e);
+          alert('PDFの生成に失敗しました。');
         }
-
-        doc.text('あなたへのアドバイス', 10, yPos);
-        yPos += 5;
-        const adviceText = highStressFlag
-          ? `- ストレスが高い状態です。産業医や専門家に相談しましょう。\n` +
-            `- 十分な休息やリラックスできる時間を確保してください。\n` +
-            `- 職場での負担や人間関係について、上司や同僚と話す機会を検討してください。`
-          : `- 現在のストレス状態は良好です。健康的な生活習慣を維持しましょう。\n` +
-            `- 定期的なストレスチェックで、変化に早めに気づくことが大切です。\n` +
-            `- 職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。`;
-        doc.text(adviceText, 10, yPos, { maxWidth: 190 });
-
-        yPos += 30;
-        doc.text('結果の解説', 10, yPos);
-        yPos += 5;
-        const explanationText = `- 仕事（A項目）：仕事の負担や裁量を評価。高いスコアは仕事のストレスが多いことを示します。\n` +
-                               `- 心身の状態（B項目）：心や体の健康状態。高いスコアはストレス症状が強いことを示します。\n` +
-                               `- 人間関係（C項目）：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。\n` +
-                               `- 満足度（D項目）：仕事や生活の満足度。低いスコアは不満が多いことを示します。`;
-        doc.text(explanationText, 10, yPos, { maxWidth: 190 });
-
-        doc.save(`${company}_${username}_${year}_stress_check.pdf`);
       });
 
       document.getElementById('exportCSV').addEventListener('click', () => {
-        console.log('CSVダウンロード開始');
-        const company = document.getElementById('company').value;
-        let dataList = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key.startsWith(`stress_${company}_`)) {
-            const item = JSON.parse(localStorage.getItem(key));
-            dataList.push(item);
+        try {
+          const company = currentCompany;
+          let dataList = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(`stress_${company}_`)) {
+              const item = JSON.parse(localStorage.getItem(key));
+              dataList.push(item);
+            }
           }
+
+          dataList.sort((a, b) => b.totalB - a.totalB);
+
+          const rows = [["匿名ID", "年度", "会社名", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
+          for (const item of dataList) {
+            const highStress = item.highStress ? 'はい' : 'いいえ';
+            rows.push([item.anonymousID || '', item.year, item.company || '', item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', item.timestamp]);
+          }
+
+          exportToCSV(rows, `${company}_stress_check.csv`);
+        } catch (e) {
+          console.error('CSVエクスポートエラー:', e);
+          alert('CSVのエクスポートに失敗しました。');
         }
-
-        dataList.sort((a, b) => b.totalB - a.totalB);
-
-        const rows = [["氏名", "年度", "会社名", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
-        for (const item of dataList) {
-          const highStress = item.highStress ? 'はい' : 'いいえ';
-          rows.push([item.name || '', item.year, item.company || '', item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', item.timestamp]);
-        }
-
-        const csvContent = rows.map(r => r.join(",")).join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${company}_stress_check.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
       });
 
       function loadAdminData(company, highStressOnly = false) {
-        console.log(`管理者データ読み込み: ${company}, 高ストレスのみ: ${highStressOnly}`);
-        let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                   "<tr><th>氏名</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
-        let dataList = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key.startsWith(`stress_${company}_`)) {
-            const item = JSON.parse(localStorage.getItem(key));
-            if (!highStressOnly || item.highStress) {
-              dataList.push(item);
+        try {
+          let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                     "<tr><th>匿名ID</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
+          let dataList = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(`stress_${company}_`)) {
+              const item = JSON.parse(localStorage.getItem(key));
+              if (!highStressOnly || item.highStress) {
+                dataList.push(item);
+              }
             }
           }
-        }
 
-        dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
+          dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
 
-        for (const item of dataList) {
-          const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
-          html += `<tr><td>${item.name || ""}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
-        }
-        html += "</table>";
-
-        html += "<h3>年度ごとの比較</h3>";
-        const users = [...new Set(dataList.map(item => item.name))];
-        for (const user of users) {
-          const userData = dataList.filter(item => item.name === user).sort((a, b) => a.year - b.year);
-          if (userData.length > 1) {
-            html += `<h4>${user}</h4>`;
-            html += "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                    "<tr><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th></tr>";
-            for (const item of userData) {
-              const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
-              html += `<tr><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td></tr>`;
-            }
-            html += "</table>";
+          for (const item of dataList) {
+            const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+            html += `<tr><td>${item.anonymousID || ""}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
           }
-        }
+          html += "</table>";
 
-        adminResults.innerHTML = html;
+          html += "<h3>年度ごとの比較</h3>";
+          const anonymousIDs = [...new Set(dataList.map(item => item.anonymousID))];
+          for (const id of anonymousIDs) {
+            const userData = dataList.filter(item => item.anonymousID === id).sort((a, b) => a.year - b.year);
+            if (userData.length > 1) {
+              html += `<h4>${id}</h4>`;
+              html += "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                      "<tr><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th></tr>";
+              for (const item of userData) {
+                const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+                html += `<tr><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td></tr>`;
+              }
+              html += "</table>";
+            }
+          }
+
+          adminResults.innerHTML = html;
+        } catch (e) {
+          console.error('管理者データ読み込みエラー:', e);
+          alert('データの読み込みに失敗しました。');
+        }
+      }
+
+      function loadMappingData(company, password) {
+        try {
+          let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                     "<tr><th>匿名ID</th><th>個人名</th><th>登録日時</th></tr>";
+          let mappingList = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(`mapping_${company}_`)) {
+              const item = JSON.parse(localStorage.getItem(key));
+              mappingList.push(item);
+            }
+          }
+
+          mappingList.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+
+          for (const item of mappingList) {
+            html += `<tr><td>${item.anonymousID}</td><td>${item.username}</td><td>${item.timestamp}</td></tr>`;
+          }
+          html += "</table>";
+
+          mappingResults.innerHTML = html;
+          mappingPanel.classList.remove('hidden');
+
+          document.getElementById('exportMappingCSV').onclick = async () => {
+            const authPassword = prompt('管理者パスワードを再入力してください（セキュリティ確認）');
+            if (!authPassword) {
+              alert('パスワードが必要です。');
+              return;
+            }
+            const hashedInput = await hashPassword(authPassword);
+            const savedPass = localStorage.getItem(`adminpass_${company}`);
+            if (hashedInput !== savedPass) {
+              alert('パスワードが正しくありません。');
+              return;
+            }
+
+            try {
+              const rows = [["匿名ID", "個人名", "登録日時"]];
+              for (const item of mappingList) {
+                rows.push([item.anonymousID, item.username, item.timestamp]);
+              }
+              exportToCSV(rows, `${company}_anonymous_mapping.csv`);
+            } catch (e) {
+              console.error('マッピングCSVエクスポートエラー:', e);
+              alert('CSVのエクスポートに失敗しました。');
+            }
+          };
+        } catch (e) {
+          console.error('マッピングデータ読み込みエラー:', e);
+          alert('マッピングデータの読み込みに失敗しました。');
+        }
       }
 
       function loadAllData(highStressOnly = false) {
-        console.log(`全データ読み込み, 高ストレスのみ: ${highStressOnly}`);
-        let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                   "<tr><th>会社名</th><th>氏名</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
-        let dataList = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key.startsWith("stress_")) {
-            const item = JSON.parse(localStorage.getItem(key));
-            if (!highStressOnly || item.highStress) {
-              dataList.push(item);
+        try {
+          let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                     "<tr><th>会社名</th><th>匿名ID</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
+          let dataList = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith("stress_")) {
+              const item = JSON.parse(localStorage.getItem(key));
+              if (!highStressOnly || item.highStress) {
+                dataList.push(item);
+              }
             }
           }
-        }
 
-        dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
+          dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
 
-        const rows = [["会社名", "氏名", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
-        for (const item of dataList) {
-          const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
-          html += `<tr><td>${item.company}</td><td>${item.name}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
-          rows.push([item.company, item.name, item.year, item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', item.timestamp]);
-        }
-        html += "</table>";
-
-        html += "<h3>年度ごとの比較</h3>";
-        const users = [...new Set(dataList.map(item => item.name))];
-        for (const user of users) {
-          const userData = dataList.filter(item => item.name === user).sort((a, b) => a.year - b.year);
-          if (userData.length > 1) {
-            html += `<h4>${user}</h4>`;
-            html += "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                    "<tr><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th></tr>";
-            for (const item of userData) {
-              const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
-              html += `<tr><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td></tr>`;
-            }
-            html += "</table>";
+          const rows = [["会社名", "匿名ID", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
+          for (const item of dataList) {
+            const highStress = item.highStress ? 'はい' : 'いいえ';
+            html += `<tr><td>${item.company}</td><td>${item.anonymousID}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
+            rows.push([item.company, item.anonymousID, item.year, item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', item.timestamp]);
           }
+          html += "</table>";
+
+          html += "<h3>匿名IDごとの比較</h3>";
+          const anonymousIDs = [...new Set(dataList.map(item => item.anonymousID))];
+          for (const id of anonymousIDs) {
+            const userData = dataList.filter(item => item.anonymousID === id).sort((a, b) => a.year - b.year);
+            if (userData.length > 1) {
+              html += `<h4>${id}</h4>`;
+              html += "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                      "<tr><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th></tr>";
+              for (const item of userData) {
+                const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+                html += `<tr><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td></tr>`;
+              }
+              html += "</table>";
+            }
+          }
+
+          masterResults.innerHTML = html;
+
+          document.getElementById('exportAllCSV').onclick = () => {
+            try {
+              exportToCSV(rows, `全会社_ストレスチェック結果.csv`);
+            } catch (e) {
+              console.error('全データCSVエクスポートエラー:', e);
+              alert('CSVのエクスポートに失敗しました。');
+            }
+          };
+        } catch (e) {
+          console.error('全データ読み込みエラー:', e);
+          alert('データの読み込みに失敗しました。');
         }
-
-        masterResults.innerHTML = html;
-
-        document.getElementById('exportAllCSV').onclick = () => {
-          console.log('全データCSVダウンロード');
-          const csv = rows.map(r => r.join(",")).join("\n");
-          const blob = new Blob([csv], { type: 'text/csv' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `全会社_ストレスチェック結果.csv`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        };
       }
 
+      document.getElementById('viewMapping').addEventListener('click', () => {
+        authModal.classList.remove('hidden');
+      });
+
+      authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          const password = document.getElementById('authPassword').value.trim();
+          const hashedInput = await hashPassword(password);
+          const savedPass = localStorage.getItem(`adminpass_${currentCompany}`);
+          if (hashedInput === savedPass) {
+            authModal.classList.add('hidden');
+            loadMappingData(currentCompany, password);
+          } else {
+            alert('管理者パスワードが正しくありません。');
+          }
+        } catch (e) {
+          console.error('認証エラー:', e);
+          alert('認証に失敗しました。');
+        }
+      });
+
+      document.getElementById('cancelAuth').addEventListener('click', () => {
+        authModal.classList.add('hidden');
+      });
+
       document.getElementById('filterHighStress')?.addEventListener('click', () => {
-        console.log('高ストレスフィルタ（管理者）');
-        const company = document.getElementById('company').value;
-        loadAdminData(company, true);
+        loadAdminData(currentCompany, true);
       });
 
       document.getElementById('filterHighStressMaster')?.addEventListener('click', () => {
-        console.log('高ストレスフィルタ（マスター）');
         loadAllData(true);
       });
     });
   </script>
-  <!-- Infolinksスクリプト -->
-  <script type="text/javascript">
-    var infolinks_pid = 3436126;
-    var infolinks_wsid = 0;
-  </script>
-  <script type="text/javascript" src="//resources.infolinks.com/js/infolinks_main.js"></script>
 </body>
 </html>
