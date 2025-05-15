@@ -3,11 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ストレスチェックシステムのよくある質問。使い方や結果について解説。">
-  <meta name="keywords" content="ストレスチェック, FAQ, メンタルヘルス">
+  <meta name="description" content="ストレスチェックシステムのよくある質問。匿名IDの使い方や結果の利用方法を解説。">
+  <meta name="keywords" content="ストレスチェック, FAQ, メンタルヘルス, 匿名性">
   <title>よくある質問</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/stresscheck/styles.css">
+  <link rel="stylesheet" href="/stresscheck/styles.css?v=2">
+  <style>
+    .notice {
+      background: #f8f9fa;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-left: 4px solid #007bff;
+    }
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    .button:hover {
+      background: #0056b3;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -26,15 +45,24 @@
   <main>
     <section>
       <h2>よくある質問</h2>
+      <div class="notice">
+        <strong>重要</strong>：本アプリは個人情報（氏名、社員番号など）を一切収集しません。企業から配布された匿名ID（例: STR001）を使用してください。ID管理および匿名性の説明は、労働安全衛生法に基づき企業様の責任で行ってください。本アプリは、匿名IDの設計・管理に起因する問題について一切の責任を負いません。
+      </div>
       <h3>Q: ストレスチェックは何に使えますか？</h3>
-      <p>A: 仕事や生活のストレスを評価し、メンタルヘルスをサポートします。スコアに基づくアドバイスで、ストレス管理の第一歩を踏み出せます。</p>
+      <p>A: 仕事や生活のストレスを評価し、メンタルヘルスをサポートします。匿名IDに紐づけられたスコアに基づくアドバイスで、ストレス管理の第一歩を踏み出せます。企業様は、集計データを職場環境の改善に活用できます。</p>
+      <h3>Q: 匿名IDとは何ですか？</h3>
+      <p>A: 企業から配布される個人特定不可のID（例: STR001）です。本アプリは、入力された匿名IDをもとにシステム生成ID（例: ABC_1234）を発行し、匿名性を確保します。個人名など個人情報は入力しないでください。</p>
       <h3>Q: 結果はどのように使われますか？</h3>
-      <p>A: 産業医面談の調整や職場環境の改善に役立てられます。データは厳格に管理され、許可されたユーザーのみ閲覧可能です。</p>
+      <p>A: 結果は匿名IDに紐づけられ、個人特定不可の状態で集計されます。企業様は、産業医面談の調整（匿名ID経由）や職場環境の改善に活用します。データは企業様の責任で厳格に管理され、許可された管理者のみ閲覧可能です。</p>
       <h3>Q: パスワードを忘れた場合は？</h3>
-      <p>A: <a href="mailto:kohitsujiclinic2025@gmail.com">kohitsujiclinic2025@gmail.com</a>までご連絡ください。サポートチームが対応します。</p>
+      <p>A: <a href="mailto:kohitsujiclinic2025@gmail.com">kohitsujiclinic2025@gmail.com</a>まで、会社名と管理者ログインか従業員ログインかを明記してご連絡ください。サポートチームが対応します。</p>
       <h3>Q: チェックは何回できますか？</h3>
-      <p>A: 1年1回の提出が基本ですが、提出済みの場合は修正可能です。詳細は<a href="/stresscheck/howto.html">使い方</a>をご覧ください。</p>
-      <p><a href="/stresscheck/index.html">今すぐチェックを始める</a></p>
+      <p>A: 1年1回の提出が基本ですが、提出済みの場合は同一年度内で修正可能です。詳細は<a href="/stresscheck/howto.html">使い方</a>をご覧ください。</p>
+      <p><a href="/stresscheck/index.html" class="button">今すぐチェックを始める</a></p>
+      <h3>企業様へ</h3>
+      <p>匿名IDは個人を特定できないランダム文字列（例: STR001）で発行してください。IDに個人情報（例: 氏名）を含めると、個人情報保護法や労働安全衛生法に違反するリスクがあります。対応表の暗号化保存と従業員への匿名性説明は、労働安全衛生法に基づき貴社の責任で行ってください。詳細は<a href="/stresscheck/id_guide.html">匿名ID管理ガイド</a>をご覧ください。</p>
+      <h3>免責事項</h3>
+      <p>本アプリは個人情報を収集せず、匿名IDの設計・管理に起因する問題（例: 個人特定、データ紛失）について一切の責任を負いません。企業様は、個人情報保護法および労働安全衛生法に基づく法令遵守の責任を負います。詳細は<a href="/stresscheck/privacy.html">プライバシーポリシー</a>をご覧ください。</p>
     </section>
   </main>
 
@@ -50,12 +78,5 @@
       <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
     </p>
   </footer>
-
-  <!-- Infolinksスクリプト -->
-  <script type="text/javascript">
-    var infolinks_pid = 3436126;
-    var infolinks_wsid = 0;
-  </script>
-  <script type="text/javascript" src="//resources.infolinks.com/js/infolinks_main.js"></script>
 </body>
 </html>
