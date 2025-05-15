@@ -3,11 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ストレスチェックシステムのお問い合わせ。サポートや質問はこちらから。">
-  <meta name="keywords" content="ストレスチェック, お問い合わせ, サポート">
+  <meta name="description" content="ストレスチェックシステムのお問い合わせ。匿名IDを使用したサポートや質問はこちらから。">
+  <meta name="keywords" content="ストレスチェック, お問い合わせ, サポート, 匿名性">
   <title>お問い合わせ</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/stresscheck/styles.css">
+  <link rel="stylesheet" href="/stresscheck/styles.css?v=2">
+  <style>
+    .notice {
+      background: #f8f9fa;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-left: 4px solid #007bff;
+    }
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    .button:hover {
+      background: #0056b3;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -26,10 +45,17 @@
   <main>
     <section>
       <h2>お問い合わせ</h2>
-      <p>ストレスチェックシステムに関するご質問やサポートが必要な場合は、以下のメールアドレスまでご連絡ください：</p>
+      <div class="notice">
+        <strong>重要</strong>：本アプリは個人情報（氏名、社員番号など）を一切収集しません。お問い合わせ時は、企業発行の匿名ID（例: STR001）で特定してください。ID管理および匿名性の説明は、労働安全衛生法に基づき企業様の責任で行ってください。本アプリは、匿名IDの設計・管理に起因する問題について一切の責任を負いません。
+      </div>
+      <p>ストレスチェックシステムに関するご質問やサポートが必要な場合は、以下のメールアドレスまでご連絡ください。個人名など個人情報は記載しないでください。ストレスチェック開始前に、<a href="/stresscheck/privacy.html">プライバシーポリシー</a>をご確認ください。</p>
       <p><a href="mailto:kohitsujiclinic2025@gmail.com">kohitsujiclinic2025@gmail.com</a></p>
-      <p>よくある質問は、<a href="/stresscheck/faq.html">FAQ</a>ページもご覧ください。</p>
-      <p><a href="/stresscheck/index.html">ホームに戻る</a></p>
+      <p>よくある質問は、<a href="/stresscheck/faq.html">FAQ</a>ページや<a href="/stresscheck/privacy.html#id-guide">匿名ID管理ガイド</a>もご覧ください。</p>
+      <p><a href="/stresscheck/index.html" class="button">ホームに戻る</a></p>
+      <h3>企業様へ</h3>
+      <p>匿名IDは個人を特定できないランダム文字列（例: STR001）で発行してください。IDに個人情報（例: 氏名）を含めると、個人情報保護法や労働安全衛生法に違反するリスクがあります。対応表の暗号化保存と従業員への匿名性説明は、労働安全衛生法に基づき貴社の責任で行ってください。詳細は<a href="/stresscheck/privacy.html#id-guide">匿名ID管理ガイド</a>をご覧ください。</p>
+      <h3>免責事項</h3>
+      <p>本アプリは個人情報を収集せず、匿名IDの設計・管理に起因する問題（例: 個人特定、データ紛失）について一切の責任を負いません。企業様は、個人情報保護法および労働安全衛生法に基づく法令遵守の責任を負います。詳細は<a href="/stresscheck/privacy.html">プライバシーポリシー</a>をご覧ください。</p>
     </section>
   </main>
 
@@ -45,12 +71,5 @@
       <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
     </p>
   </footer>
-
-  <!-- Infolinksスクリプト -->
-  <script type="text/javascript">
-    var infolinks_pid = 3436126;
-    var infolinks_wsid = 0;
-  </script>
-  <script type="text/javascript" src="//resources.infolinks.com/js/infolinks_main.js"></script>
 </body>
 </html>
