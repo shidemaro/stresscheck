@@ -48,6 +48,8 @@
       border-left: 4px solid #007bff;
     }
   </style>
+  <script src="/stresscheck/jspdf.umd.min.js"></script>
+  <script>if (!window.jspdf) document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>');</script>
 </head>
 <body>
   <header>
@@ -65,29 +67,29 @@
 
   <main>
     <section id="intro">
-  <h2>ストレスチェックを始めよう</h2>
-  <p>簡単な質問で、仕事や生活のストレスを評価できます。年度ごとに1回のみ提出可能です。</p>
-  <div class="notice">
-    <strong>注意</strong>：個人名など個人情報は入力しないでください。企業から配布された匿名ID（例: STR001）を使用してください。本アプリは個人情報を一切収集せず、匿名性を確保します。ID管理および匿名性の説明は、労働安全衛生法に基づき企業様の責任で行ってください。<br>
-    <strong>パスワードについて</strong>：<br>
-    - 従業員：自分で設定したパスワード（数字4文字以上、英字4文字以上、合計8文字以上）を入力してください。個人情報（例: 氏名、生年月日）は絶対に含めないでください。<br>
-    - 管理者：初回ログイン時に設定したパスワード、または企業指定のパスワードを入力してください。<br>
-    - マスター：特別な認証パスワード（企業管理者向けではありません）。<br>
-    パスワードは個人情報と無関係で、本アプリは個人情報を収集しません。パスワード管理は企業様の責任で行ってください。詳細は<a href="/stresscheck/privacy.html">プライバシーポリシー</a>をご覧ください。
-  </div>
-  <form id="login-form">
-    <input type="text" id="company" placeholder="会社名" required aria-label="会社名">
-    <input type="password" id="password" placeholder="自分で設定したパスワード（従業員または管理者用）" required aria-label="従業員または管理者用パスワード">
-    <input type="text" id="username" placeholder="企業発行の匿名ID" required aria-label="企業発行の匿名ID">
-    <label><input type="checkbox" id="adminCheck"> 管理者ログイン（企業管理者用パスワードが必要です）</label><br>
-    <label><input type="checkbox" required> <a href="/stresscheck/privacy.html">プライバシーポリシーおよび免責事項に同意</a></label><br>
-    <button type="submit" class="submit-button">ログイン</button>
-    <div class="forgot-password">
-      <a href="#" id="forgotPasswordLink">パスワードを忘れた場合</a>
-      <p>管理者パスワードのリセットは、サポート（<a href="mailto:kohitsujiclinic2025@gmail.com">kohitsujiclinic2025@gmail.com</a>）へご連絡ください。従業員パスワードを忘れた場合は、企業の人事担当者またはサポートに「従業員用パスワードリセット」と明記してご連絡ください。</p>
-    </div>
-  </form>
-</section>
+      <h2>ストレスチェックを始めよう</h2>
+      <p>簡単な質問で、仕事や生活のストレスを評価できます。年度ごとに1回のみ提出可能です。</p>
+      <div class="notice">
+        <strong>注意</strong>：個人名など個人情報は入力しないでください。企業から配布された匿名ID（例: STR001）を使用してください。本アプリは個人情報を一切収集せず、匿名性を確保します。ID管理および匿名性の説明は、労働安全衛生法に基づき企業様の責任で行ってください。<br>
+        <strong>パスワードについて</strong>：<br>
+        - 従業員：自分で設定したパスワード（数字4文字以上、英字4文字以上、合計8文字以上）を入力してください。個人情報（例: 氏名、生年月日）は絶対に含めないでください。<br>
+        - 管理者：初回ログイン時に設定したパスワード、または企業指定のパスワードを入力してください。<br>
+        - マスター：特別な認証パスワード（企業管理者向けではありません）。<br>
+        パスワードは個人情報と無関係で、本アプリは個人情報を収集しません。パスワード管理は企業様の責任で行ってください。詳細は<a href="/stresscheck/privacy.html">プライバシーポリシー</a>をご覧ください。
+      </div>
+      <form id="login-form">
+        <input type="text" id="company" placeholder="会社名" required aria-label="会社名">
+        <input type="password" id="password" placeholder="自分で設定したパスワード（従業員または管理者用）" required aria-label="従業員または管理者用パスワード">
+        <input type="text" id="username" placeholder="企業発行の匿名ID" required aria-label="企業発行の匿名ID">
+        <label><input type="checkbox" id="adminCheck"> 管理者ログイン（企業管理者用パスワードが必要です）</label><br>
+        <label><input type="checkbox" required> <a href="/stresscheck/privacy.html">プライバシーポリシーおよび免責事項に同意</a></label><br>
+        <button type="submit" class="submit-button">ログイン</button>
+        <div class="forgot-password">
+          <a href="#" id="forgotPasswordLink">パスワードを忘れた場合</a>
+          <p>管理者パスワードのリセットは、サポート（<a href="mailto:kohitsujiclinic2025@gmail.com">kohitsujiclinic2025@gmail.com</a>）へご連絡ください。従業員パスワードを忘れた場合は、企業の人事担当者またはサポートに「従業員用パスワードリセット」と明記してご連絡ください。</p>
+        </div>
+      </form>
+    </section>
 
     <section id="checklist" class="hidden">
       <h2>ストレスチェック</h2>
@@ -104,14 +106,14 @@
         <button type="submit" class="submit-button">送信</button>
       </form>
       <div id="result" class="results"></div>
-      <button id="downloadPDF" class="submit-button">PDFとして保存</button>
+      <button id="downloadPDF" class="submit-button" disabled>PDFとして保存</button>
     </section>
 
     <section id="adminPanel" class="hidden">
       <h2>管理画面</h2>
       <div class="notice">
         <strong>注意</strong>：企業発行IDの対応表は貴社で厳重管理してください。IDに個人情報（例: 氏名）を含めると、個人情報保護法や労働安全衛生法に違反するリスクがあります。本アプリは個人情報を収集しません。<br>
-        詳細は<a href="/stresscheck/id_guide.html">匿名ID管理ガイド</a>をご覧ください。
+        詳細は<a href="/stresscheck/privacy.html#id-guide">匿名ID管理ガイド</a>をご覧ください。
       </div>
       <button id="filterHighStress" class="filter-button">高ストレス者のみ表示</button>
       <div class="table-wrapper">
@@ -168,7 +170,6 @@
     </p>
   </footer>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     // 匿名ID生成関数
     async function generateAnonymousID(company, username, password) {
@@ -460,13 +461,15 @@
           localStorage.setItem(`stress_${data.company}_${data.anonymousID}_${data.year}`, JSON.stringify(data));
 
           localStorage.removeItem('autosave');
+          // PDFボタンを有効化
+          document.getElementById('downloadPDF').disabled = false;
         } catch (e) {
           console.error('フォーム送信エラー:', e);
           alert('データの送信に失敗しました。もう一度お試しください。');
         }
       });
 
-      // ログイン処理
+      // ログイン処理（個人情報チェック含む）
       loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         try {
@@ -475,7 +478,12 @@
           const username = sanitizeInput(document.getElementById('username').value.trim());
           const isAdmin = document.getElementById('adminCheck').checked;
 
-          currentCompany = company;
+          // 個人情報チェック
+          const personalInfoPattern = /(yamada|suzuki|tanaka|name|birth|date|\d{4}-\d{2}-\d{2})/i;
+          if (personalInfoPattern.test(password)) {
+            alert('パスワードに個人情報（例: 氏名、生年月日）を含めないでください。');
+            return;
+          }
 
           // マスターログイン
           if (company === 'master' && password === 'masterpass') {
@@ -547,9 +555,9 @@
             renderQuestions(sectionB, B_questions, 'B', ['ほとんどなかった', 'ときどきあった', 'しばしばあった', 'ほとんどいつもあった']);
             renderQuestions(sectionC, C_questions, 'C', ['非常に', 'かなり', '多少', '全くない']);
             renderQuestions(sectionD, D_questions, 'D', ['満足', 'まあ満足', 'やや不満足', '不満足']);
-            stressForm.dataset.company = company;
-            stressForm.dataset.anonymousID = anonymousID;
-            stressForm.dataset.year = currentYear;
+            stressForm.dataset.company = company || '不明';
+            stressForm.dataset.anonymousID = anonymousID || '不明';
+            stressForm.dataset.year = currentYear.toString() || '不明';
 
             if (existingSubmission) {
               const savedAnswers = JSON.parse(existingSubmission);
@@ -562,22 +570,31 @@
         }
       });
 
-      // PDFダウンロード処理
+      // PDF出力処理
       document.getElementById('downloadPDF').addEventListener('click', () => {
         try {
+          // jsPDFライブラリチェック
+          if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('jsPDFライブラリが読み込まれていません。ネットワークを確認し、ページを再読み込みしてください。');
+          // データチェック
+          if (!stressResult || !Object.keys(stressResult).length) throw new Error('ストレスチェックを完了してください。送信ボタンを押して結果を確認してください。');
+          if (!stressForm.dataset.company || !stressForm.dataset.anonymousID || !stressForm.dataset.year) throw new Error('ログイン情報が不完全です。再度ログインしてください。');
+          // フォントチェック（日本語対応）
           const { jsPDF } = window.jspdf;
-          const doc = new jsPDF();
+          const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+          });
           const company = stressForm.dataset.company || '不明';
           const anonymousID = stressForm.dataset.anonymousID || '不明';
           const year = stressForm.dataset.year || '不明';
-
-          doc.setFont('helvetica', 'bold');
+          // 日本語フォント設定
+          doc.setFont('helvetica', 'normal');
           doc.setFontSize(16);
           doc.text(`ストレスチェック結果 (${company} - ${anonymousID} - ${year}年度)`, 10, 10);
-
-          doc.setFont('helvetica', 'normal');
           doc.setFontSize(12);
           doc.text('あなたのスコア', 10, 20);
+          // テーブル生成
           doc.autoTable({
             startY: 25,
             head: [['項目', 'スコア', '基準値']],
@@ -585,12 +602,11 @@
               ['仕事（A項目）', `${stressResult.totalA || 0}点`, '高いほど仕事の負担が多い'],
               ['心身の状態（B項目）', `${stressResult.totalB || 0}点`, '77点以上で高ストレス'],
               ['人間関係（C項目）', `${stressResult.totalC || 0}点`, '低いほど支援が少ない'],
-              ['満足度（D項目）', `${stressResult.totalD || 0}点`, '低いほど不満が多い'],
+              ['満足度（D項目）', `${stressResult.totalD || 0}点`, '低いほど不満が多い']
             ],
             styles: { font: 'helvetica', fontSize: 10 },
-            headStyles: { fillColor: [200, 200, 200] },
+            headStyles: { fillColor: [200, 200, 200] }
           });
-
           let yPos = doc.lastAutoTable.finalY + 10;
           if (stressResult.highStressFlag) {
             doc.setTextColor(255, 0, 0);
@@ -605,7 +621,6 @@
             doc.text('現在のストレス状態は良好です。', 10, yPos);
             yPos += 10;
           }
-
           doc.text('あなたへのアドバイス', 10, yPos);
           yPos += 5;
           const adviceText = stressResult.highStressFlag
@@ -616,7 +631,6 @@
               `- 定期的なストレスチェックで、変化に早めに気づくことが大切です。\n` +
               `- 職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。`;
           doc.text(adviceText, 10, yPos, { maxWidth: 190 });
-
           yPos += 30;
           doc.text('結果の解説', 10, yPos);
           yPos += 5;
@@ -625,39 +639,12 @@
                                  `- 人間関係（C項目）：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。\n` +
                                  `- 満足度（D項目）：仕事や生活の満足度。低いスコアは不満が多いことを示します。`;
           doc.text(explanationText, 10, yPos, { maxWidth: 190 });
-
-          doc.save(`${company}_${anonymousID}_${year}_stress_check.pdf`);
+          doc.save(`${company}_${anonymousID}_${year}_stress_check.pdf`, { returnPromise: true })
+            .then(() => alert('PDFをダウンロードしました。'))
+            .catch(e => alert('PDFダウンロードに失敗しました: ' + e.message));
         } catch (e) {
           console.error('PDF生成エラー:', e);
-          alert('PDFの生成に失敗しました。');
-        }
-      });
-
-      // CSVエクスポート処理
-      document.getElementById('exportCSV').addEventListener('click', () => {
-        try {
-          const company = currentCompany;
-          let dataList = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.startsWith(`stress_${company}_`)) {
-              const item = JSON.parse(localStorage.getItem(key));
-              dataList.push(item);
-            }
-          }
-
-          dataList.sort((a, b) => b.totalB - a.totalB);
-
-          const rows = [["システム生成ID", "年度", "会社名", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
-          for (const item of dataList) {
-            const highStress = item.highStress ? 'はい' : 'いいえ';
-            rows.push([item.anonymousID || '', item.year, item.company || '', item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', item.timestamp]);
-          }
-
-          exportToCSV(rows, `${company}_stress_check.csv`);
-        } catch (e) {
-          console.error('CSVエクスポートエラー:', e);
-          alert('CSVのエクスポートに失敗しました。');
+          alert('PDF生成に失敗しました。詳細: ' + e.message);
         }
       });
 
@@ -713,18 +700,18 @@
         try {
           let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
                      "<tr><th>システム生成ID</th><th>企業発行ID</th><th>登録日時</th></tr>";
-          let mappingList = [];
+          let dataList = [];
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if (key.startsWith(`mapping_${company}_`)) {
               const item = JSON.parse(localStorage.getItem(key));
-              mappingList.push(item);
+              dataList.push(item);
             }
           }
 
-          mappingList.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+          dataList.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
-          for (const item of mappingList) {
+          for (const item of dataList) {
             html += `<tr><td>${item.anonymousID}</td><td>${item.username}</td><td>${item.timestamp}</td></tr>`;
           }
           html += "</table>";
