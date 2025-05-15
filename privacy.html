@@ -3,11 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ストレスチェックシステムのプライバシーポリシー。個人情報の管理と広告データ収集について。">
-  <meta name="keywords" content="ストレスチェック, プライバシーポリシー, 個人情報">
+  <meta name="description" content="ストレスチェックシステムのプライバシーポリシー。個人情報は一切収集しません。">
+  <meta name="keywords" content="ストレスチェック, プライバシーポリシー, 匿名性">
   <title>プライバシーポリシー</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/stresscheck/styles.css">
+  <link rel="stylesheet" href="/stresscheck/styles.css?v=2">
+  <style>
+    .notice {
+      background: #f8f9fa;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-left: 4px solid #007bff;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -26,28 +34,55 @@
   <main>
     <section>
       <h2>プライバシーポリシー</h2>
-      <p>ストレスチェックシステム（以下、当サイト）では、ユーザーのプライバシーを尊重し、個人情報の保護に努めています。以下の内容をご確認ください。</p>
+      <div class="notice">
+        <strong>重要</strong>：本アプリは個人情報（氏名、社員番号など）を一切収集しません。企業から配布された匿名ID（例: STR001）およびシステム生成の匿名ID（例: ABC_1234）のみを処理し、匿名性を確保します。個人名など個人情報は入力しないでください。
+      </div>
+      <p>ストレスチェックシステム（以下、当サイト）は、ユーザーのプライバシーを保護し、個人情報保護法および労働安全衛生法に基づく匿名性を確保します。以下の内容をご確認ください。</p>
+      
       <h3>1. 収集する情報</h3>
+      <p>当サイトは、個人情報保護法に定義される個人情報（氏名、社員番号、住所など）を一切収集・保存しません。以下のデータのみを処理します：</p>
       <ul>
-        <li>ストレスチェックの回答データ（会社名、氏名、スコア、面談希望の有無など）。</li>
-        <li>管理者ログインおよびマスターログインで入力される認証情報。</li>
+        <li><strong>企業発行の匿名ID</strong>（例: STR001）：企業様が従業員に配布する、個人を特定しないID。</li>
+        <li><strong>システム生成の匿名ID</strong>（例: ABC_1234）：当サイトが自動生成し、個人特定を防止。</li>
+        <li><strong>ストレスチェックの回答データ</strong>：匿名IDに紐づけられ、個人特定不可。</li>
+        <li><strong>管理者認証情報</strong>：会社名とハッシュ化されたパスワード（個人情報は含まず）。</li>
       </ul>
+      
       <h3>2. 情報の利用目的</h3>
+      <p>収集したデータは、以下の目的でのみ使用します：</p>
       <ul>
-        <li>ストレスチェック結果の分析と産業医面談の調整。</li>
-        <li>職場環境の改善やメンタルヘルス支援。</li>
-        <li>Infolinksによる広告配信（閲覧情報に基づくターゲティングが行われる場合があります）。</li>
+        <li>ストレスチェック結果の集計と分析（匿名データのみ）。</li>
+        <li>高ストレス者の産業医面談調整（匿名ID経由）。</li>
+        <li>職場環境の改善およびメンタルヘルス支援（集計データ使用）。</li>
       </ul>
+      <p>当サイトは、個人を特定する目的でデータを使用しません。</p>
+      
       <h3>3. データの管理</h3>
+      <p>データの管理は、以下の通り行います：</p>
       <ul>
-        <li>ストレスチェックは1年1度の提出が基本ですが、修正が可能です。データは年度ごとに保存されます。</li>
-        <li>マスターログインでは、会社名、管理者パスワード、個人名を閲覧可能です。これらの情報は許可されたユーザーのみアクセス可能です。</li>
-        <li>認証はクライアント側で処理されます。パスワードを他人と共有しないでください。</li>
+        <li><strong>匿名性の確保</strong>：ストレスチェックデータは匿名IDに紐づけられ、個人特定不可。企業発行IDの対応表は企業様が管理し、当サイトは関与しません。</li>
+        <li><strong>データ保存</strong>：回答データはローカルストレージに一時保存され、年度ごとに管理。企業様が必要に応じて削除可能。</li>
+        <li><strong>認証</strong>：管理者パスワードはハッシュ化され、クライアント側で処理。パスワードを他人と共有しないでください。</li>
+        <li><strong>アクセス制限</strong>：マスターログインは許可されたユーザーのみアクセス可能。企業様は、対応表の暗号化保存とアクセス制限を徹底してください。</li>
       </ul>
+      
       <h3>4. 第三者提供</h3>
-      <p>Infolinksや他の広告ネットワークは、閲覧情報を使用して広告を最適化する場合があります。詳細は各ネットワークのプライバシーポリシーをご覧ください。個人情報はこれ以外の第三者に提供しません。</p>
-      <h3>5. お問い合わせ</h3>
-      <p>プライバシーに関するご質問は、<a href="mailto:kohitsujiclinic2025@gmail.com">kohitsujiclinic2025@gmail.com</a>までご連絡ください。</p>
+      <p>当サイトは、匿名IDおよびストレスチェックデータを第三者に提供しません。広告スクリプト（例: Infolinks）は現在使用していません。将来広告を導入する場合、個人情報を収集しない形で運用し、事前に同意を取得します。</p>
+      
+      <h3>5. 企業様の責任</h3>
+      <p>労働安全衛生法（第66条の10）および厚生労働省のストレスチェック実施マニュアルに基づき、企業様は以下の責任を負います：</p>
+      <ul>
+        <li>匿名IDを個人特定できないランダム文字列（例: STR001）で発行。</li>
+        <li>匿名IDと従業員の対応表を暗号化保存し、アクセスを人事担当者に限定。</li>
+        <li>従業員に対し、ストレスチェックの匿名性と当サイトの仕組みを説明。</li>
+      </ul>
+      <p>詳細は<a href="/stresscheck/id_guide.html">匿名ID管理ガイド</a>をご覧ください。</p>
+      
+      <h3>6. 免責事項</h3>
+      <p>当サイトは個人情報を収集せず、匿名IDの設計・管理に起因する問題（例: 個人特定、データ紛失）について一切の責任を負いません。企業様は、個人情報保護法および労働安全衛生法に基づく法令遵守の責任を負います。</p>
+      
+      <h3>7. お問い合わせ</h3>
+      <p>プライバシーに関するご質問は、<a href="mailto:kohitsujiclinic2025@gmail.com">kohitsujiclinic2025@gmail.com</a>または<a href="/stresscheck/contact.html">お問い合わせ</a>ページよりご連絡ください。</p>
     </section>
   </main>
 
@@ -63,12 +98,5 @@
       <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
     </p>
   </footer>
-
-  <!-- Infolinksスクリプト -->
-  <script type="text/javascript">
-    var infolinks_pid = 3436126;
-    var infolinks_wsid = 0;
-  </script>
-  <script type="text/javascript" src="//resources.infolinks.com/js/infolinks_main.js"></script>
 </body>
 </html>
