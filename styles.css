@@ -12,6 +12,9 @@ body {
   color: #2D3748;
   line-height: 1.6;
   font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 /* ヘッダー */
@@ -21,13 +24,13 @@ header {
   position: sticky;
   top: 0;
   z-index: 1000;
-  padding: 0.5rem 0; /* 高さ削減 */
+  padding: 0.5rem 0;
 }
 header h1 {
   font-size: 1.5rem;
   color: #2B6CB0;
   text-align: center;
-  margin-bottom: 0.1rem; /* 余白削減 */
+  margin-bottom: 0.1rem;
 }
 nav {
   text-align: center;
@@ -46,65 +49,52 @@ nav a:hover {
 
 /* メイン */
 main {
-  max-width: 900px;
-  margin: 1rem auto; /* 上部余白削減 */
-  padding: 0 1rem;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
 }
-section {
+.login-container {
+  display: flex;
+  max-width: 900px;
+  width: 100%;
+  gap: 1.5rem;
   background-color: #FFFFFF;
   border-radius: 8px;
-  padding: 1.5rem; /* 内部余白微調整 */
+  padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.5rem;
 }
-h1, h2, h3 {
-  color: #2D3748;
-  margin-bottom: 1rem;
-}
-p, ul {
-  margin-bottom: 1.5rem;
-}
-ul {
-  list-style: disc;
-  padding-left: 1.5rem;
-}
-a {
-  color: #2B6CB0;
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-}
-
-/* フォームとボタン */
-.submit-button, .filter-button, .interview-button {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background-color: #2B6CB0;
-  color: #FFFFFF;
-  font-weight: 600;
-  border: none;
+.notice {
+  flex: 1;
+  background-color: #FEF6E9;
+  border: 1px solid #FEEBC8;
+  padding: 1rem;
   border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.2s;
+  color: #7B341E;
+  font-size: 12px;
+  line-height: 1.5;
 }
-.submit-button:hover, .filter-button:hover, .interview-button:hover {
-  background-color: #2C5282;
-  transform: translateY(-2px);
+.notice strong {
+  color: #2B6CB0;
 }
-.filter-button {
-  background-color: #38A169;
+.notice ul {
+  margin: 0.5rem 0;
+  padding-left: 1.2rem;
 }
-.filter-button:hover {
-  background-color: #2F855A;
+#login-form {
+  flex: 1;
+  padding: 1.5rem;
 }
-.interview-button {
-  background-color: #E53E3E;
+#login-form h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
 }
-.interview-button:hover {
-  background-color: #C53030;
+#login-form p {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
 }
-input[type="text"], input[type="password"], select {
+input[type="text"], input[type="password"] {
   width: 100%;
   padding: 0.75rem;
   margin-bottom: 1rem;
@@ -112,90 +102,43 @@ input[type="text"], input[type="password"], select {
   border-radius: 6px;
   font-size: 1rem;
 }
-input[type="radio"], input[type="checkbox"] {
+input[type="checkbox"] {
   margin-right: 0.5rem;
 }
-.question {
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #E2E8F0;
-}
-.question:last-child {
-  border-bottom: none;
-}
-.question p {
-  margin-bottom: 0.25rem;
-  font-weight: 500;
-}
-.question .options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-.question .options label {
-  display: flex;
-  align-items: center;
+label {
   font-size: 0.95rem;
-}
-.interview-selection {
-  margin-top: 1rem;
-}
-.interview-selection label {
   display: block;
-  margin: 0.5rem 0;
+  margin-bottom: 0.5rem;
 }
-
-/* 通知と結果 */
-.notice {
-  background-color: #FEF6E9;
-  border: 1px solid #FEEBC8;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
-  color: #7B341E;
-}
-.results {
-  background-color: #F7FAFC;
-  padding: 1.5rem;
-  border-radius: 6px;
-  margin-top: 1.5rem;
-}
-.results table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-}
-.results th, .results td {
-  border: 1px solid #E2E8F0;
+.submit-button {
+  display: block;
   padding: 0.75rem;
-  text-align: left;
-}
-.results th {
-  background-color: #EDF2F7;
+  background-color: #2B6CB0;
+  color: #FFFFFF;
   font-weight: 600;
-}
-.high-stress-warning {
-  background-color: #FFF5F5;
-  border: 2px solid #F56565;
-  padding: 1rem;
+  border: none;
   border-radius: 6px;
-  margin-bottom: 1.5rem;
-  color: #742A2A;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  width: 100%;
 }
-.advice-section {
-  background-color: #F0FFF4;
-  border: 1px solid #C6F6D5;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-top: 1.5rem;
+.submit-button:hover {
+  background-color: #2C5282;
+  transform: translateY(-2px);
 }
-.high-stress {
-  color: #E53E3E;
-  font-weight: bold;
+.forgot-password {
+  font-size: 12px;
+  margin-top: 1rem;
+  color: #2D3748;
 }
-.table-wrapper {
-  overflow-x: auto;
+.forgot-password a {
+  color: #2B6CB0;
+  text-decoration: none;
 }
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+.hidden { display: none; }
 
 /* フッター */
 footer {
@@ -221,52 +164,47 @@ footer a:hover {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-section {
+.login-container {
   animation: fadeIn 0.5s ease-out;
 }
 
 /* レスポンシブ */
 @media (max-width: 480px) {
   body {
-    padding: 10px;
     font-size: 14px;
+  }
+  .login-container {
+    flex-direction: column;
+    padding: 1rem;
+  }
+  .notice {
+    font-size: 11px;
+    padding: 0.75rem;
+  }
+  #login-form {
+    padding: 1rem;
+  }
+  #login-form h2 {
+    font-size: 1.1rem;
+  }
+  input[type="text"], input[type="password"] {
+    padding: 0.5rem;
+  }
+  .submit-button {
+    padding: 0.5rem;
+    font-size: 0.9rem;
   }
   header h1 {
     font-size: 1.25rem;
-    margin-bottom: 0.1rem;
   }
   nav {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.1rem; /* グリッド間余白削減 */
+    gap: 0.1rem;
   }
   nav a {
-    display: block;
     margin: 0;
-    padding: 0.3rem; /* リンク余白削減 */
-    text-align: center;
-    font-size: 0.85rem; /* 文字サイズ微調整 */
-  }
-  section {
-    padding: 1rem;
-  }
-  .submit-button, .filter-button, .interview-button {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-  }
-  input[type="text"], input[type="password"], select {
-    padding: 0.5rem;
-  }
-  .results th, .results td {
-    padding: 0.5rem;
+    padding: 0.3rem;
     font-size: 0.85rem;
-  }
-  .notice {
-    padding: 0.75rem;
-    font-size: 0.85rem;
-  }
-  .question .options {
-    flex-direction: column;
-    gap: 0.5rem;
   }
 }
