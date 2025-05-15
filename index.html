@@ -65,24 +65,29 @@
 
   <main>
     <section id="intro">
-      <h2>ストレスチェックを始めよう</h2>
-      <p>簡単な質問で、仕事や生活のストレスを評価できます。年度ごとに1回のみ提出可能です。</p>
-      <div class="notice">
-        <strong>注意</strong>：個人名など個人情報は入力しないでください。企業から配布された匿名ID（例: STR001）を使用してください。本アプリは個人情報を一切収集せず、匿名性を確保します。ID管理および匿名性の説明は、労働安全衛生法に基づき企業様の責任で行ってください。<br>
-        本アプリは個人情報を収集せず、匿名IDの設計・管理に起因する問題（例: 個人特定、データ紛失）について一切の責任を負いません。
-      </div>
-      <form id="login-form">
-        <input type="text" id="company" placeholder="会社名" required aria-label="会社名">
-        <input type="password" id="password" placeholder="パスワード" required aria-label="パスワード">
-        <input type="text" id="username" placeholder="企業発行の匿名ID" required aria-label="企業発行の匿名ID">
-        <label><input type="checkbox" id="adminCheck"> 管理者ログイン</label><br>
-        <label><input type="checkbox" required> <a href="/stresscheck/privacy.html">プライバシーポリシーおよび免責事項に同意</a></label><br>
-        <button type="submit" class="submit-button">ログイン</button>
-        <div class="forgot-password">
-          <a href="#" id="forgotPasswordLink">パスワードを忘れた場合</a>
-        </div>
-      </form>
-    </section>
+  <h2>ストレスチェックを始めよう</h2>
+  <p>簡単な質問で、仕事や生活のストレスを評価できます。年度ごとに1回のみ提出可能です。</p>
+  <div class="notice">
+    <strong>注意</strong>：個人名など個人情報は入力しないでください。企業から配布された匿名ID（例: STR001）を使用してください。本アプリは個人情報を一切収集せず、匿名性を確保します。ID管理および匿名性の説明は、労働安全衛生法に基づき企業様の責任で行ってください。<br>
+    <strong>パスワードについて</strong>：<br>
+    - 従業員：自分で設定したパスワード（数字4文字以上、英字4文字以上、合計8文字以上）を入力してください。個人情報（例: 氏名、生年月日）は絶対に含めないでください。<br>
+    - 管理者：初回ログイン時に設定したパスワード、または企業指定のパスワードを入力してください。<br>
+    - マスター：特別な認証パスワード（企業管理者向けではありません）。<br>
+    パスワードは個人情報と無関係で、本アプリは個人情報を収集しません。パスワード管理は企業様の責任で行ってください。詳細は<a href="/stresscheck/privacy.html">プライバシーポリシー</a>をご覧ください。
+  </div>
+  <form id="login-form">
+    <input type="text" id="company" placeholder="会社名" required aria-label="会社名">
+    <input type="password" id="password" placeholder="自分で設定したパスワード（従業員または管理者用）" required aria-label="従業員または管理者用パスワード">
+    <input type="text" id="username" placeholder="企業発行の匿名ID" required aria-label="企業発行の匿名ID">
+    <label><input type="checkbox" id="adminCheck"> 管理者ログイン（企業管理者用パスワードが必要です）</label><br>
+    <label><input type="checkbox" required> <a href="/stresscheck/privacy.html">プライバシーポリシーおよび免責事項に同意</a></label><br>
+    <button type="submit" class="submit-button">ログイン</button>
+    <div class="forgot-password">
+      <a href="#" id="forgotPasswordLink">パスワードを忘れた場合</a>
+      <p>管理者パスワードのリセットは、サポート（<a href="mailto:kohitsujiclinic2025@gmail.com">kohitsujiclinic2025@gmail.com</a>）へご連絡ください。従業員パスワードを忘れた場合は、企業の人事担当者またはサポートに「従業員用パスワードリセット」と明記してご連絡ください。</p>
+    </div>
+  </form>
+</section>
 
     <section id="checklist" class="hidden">
       <h2>ストレスチェック</h2>
