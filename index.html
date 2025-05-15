@@ -7,7 +7,7 @@
   <meta name="keywords" content="ストレスチェック, メンタルヘルス, 職場ストレス">
   <title>ストレスチェック</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/stresscheck/styles.css">
+  <link rel="stylesheet" href="/stresscheck/styles.css?v=2">
   <style>
     .hidden { display: none; }
     .modal {
@@ -68,15 +68,15 @@
       <h2>ストレスチェックを始めよう</h2>
       <p>簡単な質問で、仕事や生活のストレスを評価できます。年度ごとに1回のみ提出可能です。</p>
       <div class="notice">
-        注意：ストレスチェックは1年1度の提出です。提出済みの場合は修正が可能です。パスワードを他人と共有しないでください。<br>
-        <strong>個人名など個人情報は入力しないでください。企業から配布された匿名ID（例: STR001）を使用してください。本アプリは個人情報を収集せず、匿名性を確保します。ID管理および匿名性の説明は企業様の責任で行ってください。</strong>
+        <strong>注意</strong>：個人名など個人情報は入力しないでください。企業から配布された匿名ID（例: STR001）を使用してください。本アプリは個人情報を一切収集せず、匿名性を確保します。ID管理および匿名性の説明は、労働安全衛生法に基づき企業様の責任で行ってください。<br>
+        本アプリは個人情報を収集せず、匿名IDの設計・管理に起因する問題（例: 個人特定、データ紛失）について一切の責任を負いません。
       </div>
       <form id="login-form">
         <input type="text" id="company" placeholder="会社名" required aria-label="会社名">
         <input type="password" id="password" placeholder="パスワード" required aria-label="パスワード">
         <input type="text" id="username" placeholder="企業発行の匿名ID" required aria-label="企業発行の匿名ID">
         <label><input type="checkbox" id="adminCheck"> 管理者ログイン</label><br>
-        <label><input type="checkbox" required> <a href="/stresscheck/privacy.html">注意事項およびプライバシーポリシーに同意</a></label><br>
+        <label><input type="checkbox" required> <a href="/stresscheck/privacy.html">プライバシーポリシーおよび免責事項に同意</a></label><br>
         <button type="submit" class="submit-button">ログイン</button>
         <div class="forgot-password">
           <a href="#" id="forgotPasswordLink">パスワードを忘れた場合</a>
@@ -105,8 +105,8 @@
     <section id="adminPanel" class="hidden">
       <h2>管理画面</h2>
       <div class="notice">
-        注意：企業発行IDの対応表は貴社で厳重管理してください。IDに個人情報（例: 氏名）を含めると法令違反のリスクがあります。本アプリは個人情報を収集しません。<br>
-        <a href="/stresscheck/id_guide.html">匿名ID管理ガイド</a>
+        <strong>注意</strong>：企業発行IDの対応表は貴社で厳重管理してください。IDに個人情報（例: 氏名）を含めると、個人情報保護法や労働安全衛生法に違反するリスクがあります。本アプリは個人情報を収集しません。<br>
+        詳細は<a href="/stresscheck/id_guide.html">匿名ID管理ガイド</a>をご覧ください。
       </div>
       <button id="filterHighStress" class="filter-button">高ストレス者のみ表示</button>
       <div class="table-wrapper">
@@ -792,7 +792,7 @@
             }
           }
 
-          dataList.sort((a,olk b) => b.year - a.year || b.totalB - a.totalB);
+          dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
 
           const rows = [["会社名", "システム生成ID", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
           for (const item of dataList) {
