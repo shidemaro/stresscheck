@@ -305,7 +305,8 @@
       else if (section === 'C') totalC += score;
       else if (section === 'D') totalD += score;
     }
-
+localStorage.setItem(`savedAnswers_${companyCode}_${anonymousId}`, JSON.stringify(savedAnswers));
+    
     // 以下、既存の処理は変更なし
     let evaluation = "";
     highStressFlag = false;
@@ -413,6 +414,16 @@
         }
       });
 
+      document.addEventListener('DOMContentLoaded', function() {
+  const savedAnswersKey = `savedAnswers_${companyCode}_${anonymousId}`;
+  const savedAnswers = JSON.parse(localStorage.getItem(savedAnswersKey) || '{}');
+
+  for (const key in savedAnswers) {
+    const radio = document.querySelector(`input[name=\"${key}\"][value=\"${savedAnswers[key]}\"]`);
+    if (radio) radio.checked = true;
+  }
+});
+      
       document.getElementById('downloadPDF').addEventListener('click', () => {
         console.log('PDFダウンロード開始');
         try {
