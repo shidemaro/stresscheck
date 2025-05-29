@@ -278,30 +278,48 @@
         }
       }
 
-      stressForm.addEventListener('change', () => {
-        console.log('ストレスフォーム変更検知');
-        const formData = new FormData(stressForm);
-        const answerData = {};
-        for (let [key, value] of formData.entries()) {
-          answerData[key] = value;
-        }
-        localStorage.setItem('autosave', JSON.stringify(answerData));
-      });
+     stressForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  console.log('ストレスフォーム送信');
+  try {
+    const formData = new FormData(stressForm);
+    totalA = 0, totalB = 0, totalC = 0, totalD = 0;
 
-      stressForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        console.log('ストレスフォーム送信');
-        try {
-          const formData = new FormData(stressForm);
-          totalA = 0, totalB = 0, totalC = 0, totalD = 0;
-          for (let [key, value] of formData.entries()) {
-            const score = parseInt(value);
-            const section = key.charAt(0);
-            if (section === 'A') totalA += score;
-            else if (section === 'B') totalB += score;
-            else if (section === 'C') totalC += score;
-            else if (section === 'D') totalD += score;
-          }
+    for (let [key, value] of formData.entries()) {
+      let score = parseInt(value);
+      const section = key.charAt(0);
+      const questionNum = parseInt(key.slice(1));
+
+      // A領域の逆転項目: 1～7, 11～13, 15
+      if (section === 'A' && ([1,2,3,4,5,6,7,11,12,13,15].includes(questionNum))) {
+        score = 5 - score;
+      }
+
+      // B領域の逆転項目: 1～3
+      if (section === 'B' && ([1,2,3].includes(questionNum))) {
+        score = 5 - score;
+      }
+
+      if (section === 'A') totalA += score;
+      else if (section === 'B') totalB += score;
+      else if (section === 'C') totalC += score;
+      else if (section === 'D') totalD += score;
+    }
+
+    // 以下、既存の処理は変更なし
+    let evaluation = "";
+    highStressFlag = false;
+    highStressReason = "";
+
+    if (totalB >= 77) {
+      highStressReason = "最近の心身の状態（B項目）の合計が77点以上で、ストレスが高い状態です。";
+      evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
+      highStressFlag = true;
+    } else if ((totalA + totalC) >= 76 && totalB >= 63) {
+      highStressReason = "仕事や人間関係（A+C項目）の合計が76点以上、かつ心身の状態（B項目）が63点以上で、ストレスが高い状態です。";
+      evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
+      highStressFlag = true;
+    }
           let evaluation = "";
           highStressFlag = false;
           highStressReason = "";
