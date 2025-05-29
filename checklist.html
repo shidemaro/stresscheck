@@ -496,6 +496,37 @@ localStorage.setItem(`savedAnswers_${companyCode}_${anonymousId}`, JSON.stringif
         }
       });
     });
+
+document.getElementById('downloadPDF').addEventListener('click', () => {
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // PDFのタイトル
+    doc.setFontSize(16);
+    doc.text("ストレスチェック結果", 10, 10);
+
+    // スコアの表をPDFに追加
+    doc.autoTable({
+      startY: 20,
+      head: [['項目', 'スコア', '基準値']],
+      body: [
+        ['仕事（A項目）', `${totalA}点`, '高いほど仕事の負担が多い'],
+        ['心身の状態（B項目）', `${totalB}点`, '77点以上で高ストレス'],
+        ['人間関係（C項目）', `${totalC}点`, '低いほど支援が少ない'],
+        ['満足度（D項目）', `${totalD}点`, '低いほど不満が多い']
+      ],
+    });
+
+    // PDFをダウンロード保存
+    doc.save(`${companyCode}_${anonymousId}_${currentYear}_stress_check.pdf`);
+  } catch (error) {
+    console.error('PDF生成エラー:', error);
+    alert('PDF生成時にエラーが発生しました：' + error.message);
+  }
+});
+
+    
   </script>
 </body>
 </html>
