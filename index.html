@@ -181,8 +181,8 @@
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
       const companyPrefix = (company.slice(0, 3) || 'UNK').toUpperCase();
-      const randomNum = Math.floor(1000 + Math.random() * 9000);
-      return `${companyPrefix}_${randomNum}`;
+      // 先頭8桁を使用して再現性のあるIDを生成
+      return `${companyPrefix}_${hash.slice(0, 8)}`;
     }
 
     // パスワードハッシュ化関数
@@ -380,8 +380,20 @@
           const formData = new FormData(stressForm);
           let totalA = 0, totalB = 0, totalC = 0, totalD = 0;
           for (let [key, value] of formData.entries()) {
-            const score = parseInt(value);
+            let score = parseInt(value);
             const section = key.charAt(0);
+            const qNum = parseInt(key.slice(1));
+
+            // A領域の逆転項目: 1～7, 11～13, 15
+            if (section === 'A' && [1,2,3,4,5,6,7,11,12,13,15].includes(qNum)) {
+              score = 5 - score;
+            }
+
+            // B領域の逆転項目: 1～3
+            if (section === 'B' && [1,2,3].includes(qNum)) {
+              score = 5 - score;
+            }
+
             if (section === 'A') totalA += score;
             else if (section === 'B') totalB += score;
             else if (section === 'C') totalC += score;
@@ -446,11 +458,13 @@
                              `<li><strong>満足度（D項目）</strong>：仕事や生活の満足度。低いスコアは不満が多いことを示します。</li>` +
                              `</ul>`;
 
-          resultDiv.innerHTML = `${evaluation}${scoreTable}${guidance}${explanation}${advice}`;
+          const idInfo = `<p>あなたの匿名ID: ${stressForm.dataset.username || ''}</p>`;
+          resultDiv.innerHTML = `${idInfo}${evaluation}${scoreTable}${guidance}${explanation}${advice}`;
 
           const data = {
             company: stressForm.dataset.company,
             anonymousID: stressForm.dataset.anonymousID,
+            username: stressForm.dataset.username,
             year: parseInt(stressForm.dataset.year),
             totalA,
             totalB,
@@ -559,6 +573,7 @@
             renderQuestions(sectionD, D_questions, 'D', ['満足', 'まあ満足', 'やや不満足', '不満足']);
             stressForm.dataset.company = company || '不明';
             stressForm.dataset.anonymousID = anonymousID || '不明';
+            stressForm.dataset.username = username || '不明';
             stressForm.dataset.year = currentYear.toString() || '不明';
 
             if (existingSubmission) {
@@ -579,7 +594,8 @@
           if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('jsPDFライブラリが読み込まれていません。ネットワークを確認し、ページを再読み込みしてください。');
           // データチェック
           if (!stressResult || !Object.keys(stressResult).length) throw new Error('ストレスチェックを完了してください。送信ボタンを押して結果を確認してください。');
-          if (!stressForm.dataset.company || !stressForm.dataset.anonymousID || !stressForm.dataset.year) throw new Error('ログイン情報が不完全です。再度ログインしてください。');
+          if (!stressForm.dataset.company || !stressForm.dataset.anonymousID || !stressForm.dataset.username || !stressForm.dataset.year)
+            throw new Error('ログイン情報が不完全です。再度ログインしてください。');
           // フォントチェック（日本語対応）
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF({
@@ -588,12 +604,12 @@
             format: 'a4'
           });
           const company = stressForm.dataset.company || '不明';
-          const anonymousID = stressForm.dataset.anonymousID || '不明';
+          const userID = stressForm.dataset.username || '不明';
           const year = stressForm.dataset.year || '不明';
           // 日本語フォント設定
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(16);
-          doc.text(`ストレスチェック結果 (${company} - ${anonymousID} - ${year}年度)`, 10, 10);
+          doc.text(`ストレスチェック結果 (${company} - ${userID} - ${year}年度)`, 10, 10);
           doc.setFontSize(12);
           doc.text('あなたのスコア', 10, 20);
           // テーブル生成
@@ -641,7 +657,7 @@
                                  `- 人間関係（C項目）：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。\n` +
                                  `- 満足度（D項目）：仕事や生活の満足度。低いスコアは不満が多いことを示します。`;
           doc.text(explanationText, 10, yPos, { maxWidth: 190 });
-          doc.save(`${company}_${anonymousID}_${year}_stress_check.pdf`, { returnPromise: true })
+          doc.save(`${company}_${userID}_${year}_stress_check.pdf`, { returnPromise: true })
             .then(() => alert('PDFをダウンロードしました。'))
             .catch(e => alert('PDFダウンロードに失敗しました: ' + e.message));
         } catch (e) {
