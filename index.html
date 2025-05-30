@@ -172,26 +172,8 @@
     </p>
   </footer>
 
+  <script src="/stresscheck/utils.js"></script>
   <script>
-    // 匿名ID生成関数
-    async function generateAnonymousID(company, username, password) {
-      const input = `${company}_${username}_${password}`;
-      const msgBuffer = new TextEncoder().encode(input);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      const companyPrefix = (company.slice(0, 3) || 'UNK').toUpperCase();
-      const randomNum = Math.floor(1000 + Math.random() * 9000);
-      return `${companyPrefix}_${randomNum}`;
-    }
-
-    // パスワードハッシュ化関数
-    async function hashPassword(password) {
-      const msgBuffer = new TextEncoder().encode(password);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
 
     // 入力サニタイズ関数
     function sanitizeInput(input) {
