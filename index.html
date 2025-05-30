@@ -49,7 +49,11 @@
     }
   </style>
   <script src="/stresscheck/jspdf.umd.min.js"></script>
-  <script>if (!window.jspdf) document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
+  <script>
+    if (!window.jspdf) {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"><\\/script>');
+    }
+  </script>
 </head>
 <body>
   <header>
