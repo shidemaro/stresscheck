@@ -1,0 +1,12 @@
+{
+  "name": "stresscheck",
+  "version": "1.0.0",
+  "description": "Stresscheck utilities and tests",
+  "main": "utils.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
+}

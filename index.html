@@ -179,26 +179,97 @@
     </p>
   </footer>
 
+183
+
+  <script src="/stresscheck/utils.js"></script>
+
+184
+
   <script>
-    // 匿名ID生成関数
+
+185
+
+  </script>
+
+186
+
+  <script>
+
+187
+
+    // Function to generate an anonymous ID
+
+188
+
     async function generateAnonymousID(company, username, password) {
+
+189
+
       const input = `${company}_${username}_${password}`;
+
+190
+
       const msgBuffer = new TextEncoder().encode(input);
+
+191
+
       const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+
+192
+
       const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+193
+
       const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+194
+
       const companyPrefix = (company.slice(0, 3) || 'UNK').toUpperCase();
-      // 先頭8桁を使用して再現性のあるIDを生成
+
+195
+
+      // Generate a reproducible ID using the first 8 characters
+
+196
+
       return `${companyPrefix}_${hash.slice(0, 8)}`;
+
+197
+
     }
 
-    // パスワードハッシュ化関数
+198
+
+199
+
+    // Function to hash a password
+
+200
+
     async function hashPassword(password) {
+
+201
+
       const msgBuffer = new TextEncoder().encode(password);
+
+202
+
       const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+
+203
+
       const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+204
+
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+205
+
     }
+
+206
 
     // 入力サニタイズ関数
     function sanitizeInput(input) {
