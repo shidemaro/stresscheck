@@ -180,46 +180,6 @@
   </footer>
   <script src="/stresscheck/utils.js"></script>
   <script>
-  </script>
-  <script>
-    // Function to generate an anonymous ID
-    async function generateAnonymousID(company, username, password) {
-      const input = `${company}_${username}_${password}`;
-      try {
-        if (window.crypto && window.crypto.subtle) {
-          const msgBuffer = new TextEncoder().encode(input);
-          const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
-          const hashArray = Array.from(new Uint8Array(hashBuffer));
-          const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-          const companyPrefix = (company.slice(0, 3) || 'UNK').toUpperCase();
-          return `${companyPrefix}_${hash.slice(0, 8)}`;
-        }
-      } catch (e) {
-        console.error('generateAnonymousID crypto error:', e);
-      }
-      const companyPrefix = (company.slice(0, 3) || 'UNK').toUpperCase();
-      const randomNum = Math.floor(1000 + Math.random() * 9000);
-      return `${companyPrefix}_${randomNum}`;
-    }
-    // Function to hash a password
-    async function hashPassword(password) {
-      try {
-        if (window.crypto && window.crypto.subtle) {
-          const msgBuffer = new TextEncoder().encode(password);
-          const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
-          const hashArray = Array.from(new Uint8Array(hashBuffer));
-          return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-      } catch (e) {
-        console.error('hashPassword crypto error:', e);
-      }
-      let hash = 0;
-      for (let i = 0; i < password.length; i++) {
-        hash = ((hash << 5) - hash) + password.charCodeAt(i);
-        hash |= 0;
-      }
-      return hash.toString(16);
-    }
     // 入力サニタイズ関数
     function sanitizeInput(input) {
       const div = document.createElement('div');
