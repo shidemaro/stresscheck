@@ -185,20 +185,40 @@
     // Function to generate an anonymous ID
     async function generateAnonymousID(company, username, password) {
       const input = `${company}_${username}_${password}`;
-      const msgBuffer = new TextEncoder().encode(input);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      try {
+        if (window.crypto && window.crypto.subtle) {
+          const msgBuffer = new TextEncoder().encode(input);
+          const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+          const companyPrefix = (company.slice(0, 3) || 'UNK').toUpperCase();
+          return `${companyPrefix}_${hash.slice(0, 8)}`;
+        }
+      } catch (e) {
+        console.error('generateAnonymousID crypto error:', e);
+      }
       const companyPrefix = (company.slice(0, 3) || 'UNK').toUpperCase();
-      // Generate a reproducible ID using the first 8 characters
-      return `${companyPrefix}_${hash.slice(0, 8)}`;
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      return `${companyPrefix}_${randomNum}`;
     }
     // Function to hash a password
     async function hashPassword(password) {
-      const msgBuffer = new TextEncoder().encode(password);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      try {
+        if (window.crypto && window.crypto.subtle) {
+          const msgBuffer = new TextEncoder().encode(password);
+          const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+      } catch (e) {
+        console.error('hashPassword crypto error:', e);
+      }
+      let hash = 0;
+      for (let i = 0; i < password.length; i++) {
+        hash = ((hash << 5) - hash) + password.charCodeAt(i);
+        hash |= 0;
+      }
+      return hash.toString(16);
     }
     // 入力サニタイズ関数
     function sanitizeInput(input) {
@@ -539,12 +559,14 @@
               alert("管理者パスワードを新規登録しました。次回からこのパスワードが必要です。");
               loginForm.classList.add('hidden');
               adminPanel.classList.remove('hidden');
+              currentCompany = company;
               loadAdminData(company);
             } else {
               const hashedInput = await hashPassword(password);
               if (hashedInput === savedPass) {
                 loginForm.classList.add('hidden');
                 adminPanel.classList.remove('hidden');
+                currentCompany = company;
                 loadAdminData(company);
               } else {
                 alert("管理者パスワードが違います。");
@@ -574,6 +596,7 @@
 
             loginForm.classList.add('hidden');
             checklist.classList.remove('hidden');
+            currentCompany = company;
             renderQuestions(sectionA, A_questions, 'A', ['そうだ', 'まあそうだ', 'やや違う', '違う']);
             renderQuestions(sectionB, B_questions, 'B', ['ほとんどなかった', 'ときどきあった', 'しばしばあった', 'ほとんどいつもあった']);
             renderQuestions(sectionC, C_questions, 'C', ['非常に', 'かなり', '多少', '全くない']);
