@@ -701,7 +701,7 @@
       function loadAdminData(company, highStressOnly = false) {
         try {
           let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
-                     "<tr><th>システム生成ID</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
+                     "<tr><th>システム生成ID</th><th>企業発行ID</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
           let dataList = [];
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
@@ -717,7 +717,7 @@
 
           for (const item of dataList) {
             const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
-            html += `<tr><td>${item.anonymousID || ""}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
+            html += `<tr><td>${item.anonymousID || ""}</td><td>${item.username || ""}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
           }
           html += "</table>";
 
