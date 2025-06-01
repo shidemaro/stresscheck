@@ -353,6 +353,7 @@
       let stressResult = {};
       let currentCompany = '';
       let authMode = '';
+      let adminCSVRows = [];
 
       // 質問描画関数
       function renderQuestions(section, questions, prefix, labels) {
@@ -715,9 +716,12 @@
 
           dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
 
+          adminCSVRows = [["システム生成ID", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
+
           for (const item of dataList) {
             const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
             html += `<tr><td>${item.anonymousID || ""}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
+            adminCSVRows.push([item.anonymousID || '', item.year, item.totalA, item.totalB, item.totalC, item.totalD, highStress.replace(/<[^>]+>/g, ''), item.highStressReason || '', item.timestamp]);
           }
           html += "</table>";
 
@@ -738,6 +742,15 @@
           }
 
           adminResults.innerHTML = html;
+
+          document.getElementById('exportCSV').onclick = () => {
+            try {
+              exportToCSV(adminCSVRows, `${company}_stress_check_results.csv`);
+            } catch (e) {
+              console.error('CSVエクスポートエラー:', e);
+              alert('CSVのエクスポートに失敗しました。');
+            }
+          };
         } catch (e) {
           console.error('管理者データ読み込みエラー:', e);
           alert('データの読み込みに失敗しました。');
