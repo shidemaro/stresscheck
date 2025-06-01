@@ -26,7 +26,12 @@ async function hashData(data) {
   if (nodeCrypto) {
     return nodeCrypto.createHash('sha256').update(data).digest('hex');
   }
-  throw new Error('Crypto API unavailable');
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    hash = ((hash << 5) - hash) + data.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash.toString(16);
 }
 
 if (typeof module !== 'undefined' && module.exports) {
