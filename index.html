@@ -77,7 +77,7 @@
   <main>
     <section id="intro">
       <h2>ストレスチェックを始めよう</h2>
-      <p>簡単な質問で、仕事や生活のストレスを評価できます。年度ごとに1回のみ提出可能です。</p>
+      <p>簡単な質問で、仕事や生活のストレスを評価できます。4月から翌年の3月までを一つの年度とし、同じ年度内では1回のみ提出できます。</p>
       <div class="notice">
         <strong>注意</strong>：個人名など個人情報は入力しないでください。企業から配布された匿名ID（例: STR001）を使用してください。本アプリは個人情報を一切収集せず、匿名性を確保します。ID管理および匿名性の説明は、労働安全衛生法に基づき企業様の責任で行ってください。<br>
         <strong>パスワードについて</strong>：<br>
@@ -102,7 +102,7 @@
 
     <section id="checklist" class="hidden">
       <h2>ストレスチェック</h2>
-      <div class="notice">注意：提出は1年1度までです。修正は可能です。パスワードを他人と共有しないでください。</div>
+      <div class="notice">注意：提出は年度内（4月〜翌3月）で1回のみです。修正は可能です。パスワードを他人と共有しないでください。</div>
       <form id="stressForm">
         <h3>A. 仕事について</h3>
         <div id="sectionA"></div>
@@ -585,11 +585,12 @@
             };
             localStorage.setItem(`mapping_${company}_${anonymousID}`, JSON.stringify(mappingData));
 
-            const currentYear = new Date().getFullYear();
-            const submissionKey = `stress_${company}_${anonymousID}_${currentYear}`;
+            const today = new Date();
+            const fiscalYear = today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1;
+            const submissionKey = `stress_${company}_${anonymousID}_${fiscalYear}`;
             const existingSubmission = localStorage.getItem(submissionKey);
             if (existingSubmission) {
-              const confirmEdit = confirm(`この年度（${currentYear}年）にはすでに提出済みです。結果を修正しますか？`);
+              const confirmEdit = confirm('ストレスチェックを受けられるのは年に一度までです。すでに受けた内容を修正しますか？');
               if (!confirmEdit) {
                 return;
               }
@@ -606,7 +607,7 @@
             stressForm.dataset.company = company || '不明';
             stressForm.dataset.anonymousID = anonymousID || '不明';
             stressForm.dataset.username = username || '不明';
-            stressForm.dataset.year = currentYear.toString() || '不明';
+            stressForm.dataset.year = fiscalYear.toString() || '不明';
 
             if (existingSubmission) {
               const savedAnswers = JSON.parse(existingSubmission);

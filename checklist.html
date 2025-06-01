@@ -38,7 +38,7 @@
   <main>
     <section id="checklist" style="display:block !important; visibility:visible !important;">
       <h2>ストレスチェック</h2>
-      <div class="notice">注意：提出は1年1度までです。修正は可能です。匿名IDを他人と共有しないでください。</div>
+      <div class="notice">注意：提出は年度内（4月〜翌3月）で1回のみです。修正は可能です。匿名IDを他人と共有しないでください。</div>
       <form id="stressForm">
         <h3>A. 仕事について</h3>
         <div id="sectionA"></div>
@@ -73,7 +73,12 @@
   <script>
     let companyCode = localStorage.getItem('companyCode') || '';
     let anonymousId = localStorage.getItem('anonymousId') || '';
-    let currentYear = localStorage.getItem('currentYear') || new Date().getFullYear();
+    let currentYear = localStorage.getItem('currentYear');
+    if (!currentYear) {
+      const today = new Date();
+      currentYear = today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1;
+      localStorage.setItem('currentYear', currentYear);
+    }
     let answers = [];
     let questionIndex = -1;
     let totalA = 0, totalB = 0, totalC = 0, totalD = 0;
