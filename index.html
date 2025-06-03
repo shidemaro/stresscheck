@@ -355,6 +355,19 @@
       let authMode = '';
       let adminCSVRows = [];
 
+      const STRIPE_URL = 'https://buy.stripe.com/test_9B67sE3KQ9Sqa2GeYE9oc00';
+      let pendingResultHTML = '';
+
+      function redirectToStripeThen(callback) {
+        window.open(STRIPE_URL, '_blank');
+        alert('決済完了後、この画面に戻ると処理が続行されます。');
+        function handleFocus() {
+          window.removeEventListener('focus', handleFocus);
+          callback();
+        }
+        window.addEventListener('focus', handleFocus);
+      }
+
       // 質問描画関数
       function renderQuestions(section, questions, prefix, labels) {
         section.innerHTML = '';
@@ -488,7 +501,7 @@
                              `</ul>`;
 
           const idInfo = `<p>あなたの匿名ID: ${stressForm.dataset.username || ''}</p>`;
-          resultDiv.innerHTML = `${idInfo}${evaluation}${scoreTable}${guidance}${explanation}${advice}`;
+          pendingResultHTML = `${idInfo}${evaluation}${scoreTable}${guidance}${explanation}${advice}`;
 
           const data = {
             company: stressForm.dataset.company,
@@ -506,8 +519,12 @@
           localStorage.setItem(`stress_${data.company}_${data.anonymousID}_${data.year}`, JSON.stringify(data));
 
           localStorage.removeItem('autosave');
-          // PDFボタンを有効化
-          document.getElementById('downloadPDF').disabled = false;
+          redirectToStripeThen(() => {
+            document.getElementById('downloadPDF').disabled = false;
+            resultDiv.innerHTML = pendingResultHTML;
+            pendingResultHTML = '';
+            resultDiv.scrollIntoView();
+          });
         } catch (e) {
           console.error('フォーム送信エラー:', e);
           alert('データの送信に失敗しました。もう一度お試しください。');
@@ -560,16 +577,22 @@
               localStorage.setItem(`adminpass_timestamp_${company}`, new Date().toISOString());
               alert("管理者パスワードを新規登録しました。次回からこのパスワードが必要です。");
               loginForm.classList.add('hidden');
-              adminPanel.classList.remove('hidden');
-              currentCompany = company;
-              loadAdminData(company);
+              adminPanel.classList.add('hidden');
+              redirectToStripeThen(() => {
+                adminPanel.classList.remove('hidden');
+                currentCompany = company;
+                loadAdminData(company);
+              });
             } else {
               const hashedInput = await hashPassword(password);
               if (hashedInput === savedPass) {
                 loginForm.classList.add('hidden');
-                adminPanel.classList.remove('hidden');
-                currentCompany = company;
-                loadAdminData(company);
+                adminPanel.classList.add('hidden');
+                redirectToStripeThen(() => {
+                  adminPanel.classList.remove('hidden');
+                  currentCompany = company;
+                  loadAdminData(company);
+                });
               } else {
                 alert("管理者パスワードが違います。");
                 return;
