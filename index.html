@@ -355,6 +355,8 @@
       let authMode = '';
       let adminCSVRows = [];
 
+      const STRIPE_URL = 'https://buy.stripe.com/test_9B67sE3KQ9Sqa2GeYE9oc00';
+
       // 質問描画関数
       function renderQuestions(section, questions, prefix, labels) {
         section.innerHTML = '';
@@ -508,6 +510,7 @@
           localStorage.removeItem('autosave');
           // PDFボタンを有効化
           document.getElementById('downloadPDF').disabled = false;
+          window.location.href = STRIPE_URL;
         } catch (e) {
           console.error('フォーム送信エラー:', e);
           alert('データの送信に失敗しました。もう一度お試しください。');
@@ -563,6 +566,7 @@
               adminPanel.classList.remove('hidden');
               currentCompany = company;
               loadAdminData(company);
+              window.location.href = STRIPE_URL;
             } else {
               const hashedInput = await hashPassword(password);
               if (hashedInput === savedPass) {
@@ -570,6 +574,7 @@
                 adminPanel.classList.remove('hidden');
                 currentCompany = company;
                 loadAdminData(company);
+                window.location.href = STRIPE_URL;
               } else {
                 alert("管理者パスワードが違います。");
                 return;
